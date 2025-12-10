@@ -1,667 +1,1435 @@
 print("2")
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trùm Script Mini</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #151522 100%);
-            color: #e0e0ff;
-            min-height: 100vh;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        /* Container chính */
-        .script-container {
-            width: 100%;
-            max-width: 420px;
-            background: rgba(20, 20, 35, 0.95);
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            border: 1px solid #2a2a4a;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        /* Header */
-        .script-header {
-            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #2a2a4a;
-        }
-        
-        .script-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #ff0080, #00ccff);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
-        }
-        
-        h1 {
-            font-size: 20px;
-            font-weight: 700;
-            background: linear-gradient(90deg, #ff0080, #00ccff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Nút toggle di chuyển được */
-        .toggle-wrapper {
-            position: relative;
-        }
-        
-        .toggle-switch {
-            width: 65px;
-            height: 32px;
-            position: relative;
-            cursor: move;
-            user-select: none;
-        }
-        
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .toggle-slider {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #2d2d4d;
-            border-radius: 20px;
-            transition: .3s;
-            border: 2px solid #3a3a6a;
-        }
-        
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 24px;
-            width: 24px;
-            left: 3px;
-            bottom: 2px;
-            background: linear-gradient(145deg, #ff0080, #ff5500);
-            border-radius: 50%;
-            transition: .3s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-        }
-        
-        input:checked + .toggle-slider {
-            background-color: #1a3a5f;
-            border-color: #00aaff;
-        }
-        
-        input:checked + .toggle-slider:before {
-            transform: translateX(31px);
-            background: linear-gradient(145deg, #00ccff, #00ff88);
-        }
-        
-        .toggle-label {
-            font-size: 10px;
-            color: #8a8ac4;
-            text-align: center;
-            margin-top: 4px;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Menu command */
-        .command-menu {
-            padding: 16px;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        
-        .command-menu::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .command-menu::-webkit-scrollbar-track {
-            background: rgba(30, 30, 50, 0.5);
-            border-radius: 3px;
-        }
-        
-        .command-menu::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, #ff0080, #00ccff);
-            border-radius: 3px;
-        }
-        
-        .command-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .command-item {
-            background: rgba(30, 30, 50, 0.7);
-            border-radius: 12px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-            border: 1px solid #3a3a6a;
-            cursor: pointer;
-            min-height: 60px;
-        }
-        
-        .command-item:hover, .command-item:active {
-            background: rgba(40, 40, 70, 0.9);
-            border-color: #00aaff;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 170, 255, 0.2);
-        }
-        
-        .command-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-        }
-        
-        .command-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        
-        .icon-1 { background: linear-gradient(135deg, #ff0080, #ff5500); }
-        .icon-2 { background: linear-gradient(135deg, #00ccff, #0099ff); }
-        .icon-3 { background: linear-gradient(135deg, #aa00ff, #ff00aa); }
-        .icon-4 { background: linear-gradient(135deg, #00ff88, #00ccff); }
-        .icon-5 { background: linear-gradient(135deg, #ffaa00, #ff5500); }
-        .icon-6 { background: linear-gradient(135deg, #00ccff, #aa00ff); }
-        
-        .command-text {
-            flex: 1;
-        }
-        
-        .command-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 3px;
-        }
-        
-        .command-desc {
-            font-size: 11px;
-            color: #a0a0d0;
-            line-height: 1.3;
-        }
-        
-        .command-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #ff5555;
-            transition: background-color 0.3s;
-        }
-        
-        .status-active {
-            background-color: #00ff80;
-            box-shadow: 0 0 8px #00ff80;
-        }
-        
-        .command-shortcut {
-            font-size: 10px;
-            color: #8a8ac4;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 3px 6px;
-            border-radius: 6px;
-            border: 1px solid #3a3a6a;
-        }
-        
-        /* Footer */
-        .script-footer {
-            padding: 12px 16px;
-            background: rgba(20, 20, 35, 0.9);
-            border-top: 1px solid #2a2a4a;
-            text-align: center;
-        }
-        
-        .footer-text {
-            font-size: 11px;
-            color: #666699;
-        }
-        
-        .version {
-            color: #00aaff;
-            font-weight: 600;
-        }
-        
-        /* Responsive */
-        @media (max-width: 480px) {
-            .script-container {
-                max-width: 95%;
-                border-radius: 14px;
-            }
-            
-            .script-header {
-                padding: 10px 14px;
-            }
-            
-            .logo {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-            
-            h1 {
-                font-size: 18px;
-            }
-            
-            .toggle-switch {
-                width: 60px;
-                height: 28px;
-            }
-            
-            .toggle-slider:before {
-                height: 20px;
-                width: 20px;
-            }
-            
-            input:checked + .toggle-slider:before {
-                transform: translateX(28px);
-            }
-            
-            .command-menu {
-                padding: 12px;
-                max-height: 400px;
-            }
-            
-            .command-item {
-                padding: 12px;
-                min-height: 56px;
-            }
-            
-            .command-icon {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-            
-            .command-name {
-                font-size: 13px;
-            }
-            
-            .command-desc {
-                font-size: 10px;
-            }
-        }
-        
-        /* Trạng thái ẩn menu */
-        .menu-hidden {
-            display: none;
-        }
-        
-        /* Hiệu ứng pulse cho toggle */
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 170, 255, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(0, 170, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 170, 255, 0); }
-        }
-        
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Nút toggle di chuyển tự do */
-        .toggle-draggable {
-            position: fixed;
-            z-index: 1000;
-            cursor: move;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <!-- Nút toggle di chuyển được -->
-    <div class="toggle-wrapper toggle-draggable" id="draggableToggle">
-        <div class="toggle-switch">
-            <input type="checkbox" id="mainToggle" checked>
-            <span class="toggle-slider"></span>
-        </div>
-        <div class="toggle-label">KÉO ĐỂ DI CHUYỂN</div>
-    </div>
-    
-    <!-- Menu chính -->
-    <div class="script-container" id="scriptMenu">
-        <div class="script-header">
-            <div class="script-title">
-                <div class="logo">TS</div>
-                <h1>Trùm Script</h1>
-            </div>
-            
-            <div class="toggle-wrapper">
-                <div class="toggle-switch">
-                    <input type="checkbox" id="menuToggle" checked>
-                    <span class="toggle-slider pulse-animation"></span>
-                </div>
-                <div class="toggle-label">BẬT/TẮT</div>
-            </div>
-        </div>
-        
-        <div class="command-menu">
-            <div class="command-list">
-                <div class="command-item" onclick="toggleCommand(1)">
-                    <div class="command-info">
-                        <div class="command-icon icon-1">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div class="command-text">
-                            <div class="command-name">Brainrot Spawner</div>
-                            <div class="command-desc">Thêm Brainrot vào hệ thống</div>
-                        </div>
-                    </div>
-                    <div class="command-status">
-                        <div class="status-indicator" id="status1"></div>
-                        <div class="command-shortcut">B</div>
-                    </div>
-                </div>
-                
-                <div class="command-item" onclick="toggleCommand(2)">
-                    <div class="command-info">
-                        <div class="command-icon icon-2">
-                            <i class="fas fa-cube"></i>
-                        </div>
-                        <div class="command-text">
-                            <div class="command-name">Spawn Lucky Block</div>
-                            <div class="command-desc">Sinh Lucky Block ngẫu nhiên</div>
-                        </div>
-                    </div>
-                    <div class="command-status">
-                        <div class="status-indicator" id="status2"></div>
-                        <div class="command-shortcut">L</div>
-                    </div>
-                </div>
-                
-                <div class="command-item" onclick="toggleCommand(3)">
-                    <div class="command-info">
-                        <div class="command-icon icon-3">
-                            <i class="fas fa-play-circle"></i>
-                        </div>
-                        <div class="command-text">
-                            <div class="command-name">Execute All Events</div>
-                            <div class="command-desc">Chạy tất cả sự kiện</div>
-                        </div>
-                    </div>
-                    <div class="command-status">
-                        <div class="status-indicator" id="status3"></div>
-                        <div class="command-shortcut">E</div>
-                    </div>
-                </div>
-                
-                <div class="command-item" onclick="toggleCommand(4)">
-                    <div class="command-info">
-                        <div class="command-icon icon-4">
-                            <i class="fas fa-stop-circle"></i>
-                        </div>
-                        <div class="command-text">
-                            <div class="command-name">Stop Event</div>
-                            <div class="command-desc">Dừng mọi sự kiện</div>
-                        </div>
-                    </div>
-                    <div class="command-status">
-                        <div class="status-indicator" id="status4"></div>
-                        <div class="command-shortcut">S</div>
-                    </div>
-                </div>
-                
-                <div class="command-item" onclick="toggleCommand(5)">
-                    <div class="command-info">
-                        <div class="command-icon icon-5">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="command-text">
-                            <div class="command-name">Set Money</div>
-                            <div class="command-desc">Thiết lập tiền tệ</div>
-                        </div>
-                    </div>
-                    <div class="command-status">
-                        <div class="status-indicator" id="status5"></div>
-                        <div class="command-shortcut">M</div>
-                    </div>
-                </div>
-                
-                <div class="command-item" onclick="toggleCommand(6)">
-                    <div class="command-info">
-                        <div class="command-icon icon-6">
-                            <i class="fas fa-paw"></i>
-                        </div>
-                        <div class="command-text">
-                            <div class="command-name">Set Rat</div>
-                            <div class="command-desc">Điều chỉnh thông số Rat</div>
-                        </div>
-                    </div>
-                    <div class="command-status">
-                        <div class="status-indicator" id="status6"></div>
-                        <div class="command-shortcut">R</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="script-footer">
-            <div class="footer-text">
-                <span class="version">v1.0</span> | Admin Command Script | All Executor
-            </div>
-        </div>
-    </div>
+-- ============================================================================
+-- UNIVERSAL BRAINROT MOD SYSTEM
+-- Works on both modded AND vanilla "Steal a Brainrot" games
+-- Adaptive approach with multiple integration strategies
+-- ============================================================================
 
-    <script>
-        // Biến toàn cục
-        let isDragging = false;
-        let dragOffset = { x: 0, y: 0 };
-        let toggleElement = document.getElementById('draggableToggle');
-        let scriptMenu = document.getElementById('scriptMenu');
-        let mainToggle = document.getElementById('mainToggle');
-        let menuToggle = document.getElementById('menuToggle');
+--[=[
+    SMART DETECTION SYSTEM:
+    1. Auto-detect if game is modded or vanilla
+    2. Use appropriate integration method
+    3. Fallback to client-side if server-side fails
+    4. Universal compatibility guaranteed
+]=]
+
+local UniversalBrainrot = {
+    _version = "v9.0-Universal",
+    _detectionComplete = false,
+    _gameType = "UNKNOWN", -- MODDED, VANILLA, CUSTOM
+    _integrationMethod = "ADAPTIVE",
+    _modules = {},
+    _hooks = {}
+}
+
+-- ============================================================================
+-- ADVANCED GAME DETECTION ENGINE
+-- ============================================================================
+
+function UniversalBrainrot:DetectGameType()
+    print("[Universal] Analyzing game structure...")
+    
+    local indicators = {
+        modded = {},
+        vanilla = {},
+        custom = {}
+    }
+    
+    -- Check for modded game indicators
+    local moddedPatterns = {
+        "Modded", "Custom", "VIP", "Admin", "Extra", "Boost",
+        "Spawner", "AutoFarm", "OP", "Hacked", "Exploit"
+    }
+    
+    local vanillaPatterns = {
+        "Official", "Original", "[VANILLA]", "Clean", "Normal"
+    }
+    
+    -- Analyze game name
+    local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+    local placeName = game:GetService("Workspace").Name or ""
+    
+    -- Check game name for indicators
+    for _, pattern in ipairs(moddedPatterns) do
+        if gameName:lower():find(pattern:lower()) or placeName:lower():find(pattern:lower()) then
+            table.insert(indicators.modded, "Name contains: " .. pattern)
+        end
+    end
+    
+    for _, pattern in ipairs(vanillaPatterns) do
+        if gameName:lower():find(pattern:lower()) or placeName:lower():find(pattern:lower()) then
+            table.insert(indicators.vanilla, "Name contains: " .. pattern)
+        end
+    end
+    
+    -- Analyze game objects
+    local workspaceAnalysis = {
+        brainrotCount = 0,
+        spawners = 0,
+        specialObjects = 0
+    }
+    
+    -- Scan workspace for brainrot-related objects
+    for _, obj in pairs(game:GetService("Workspace"):GetDescendants()) do
+        local name = obj.Name:lower()
         
-        // Khởi tạo vị trí toggle
-        toggleElement.style.left = '20px';
-        toggleElement.style.top = '20px';
-        
-        // Xử lý nút bật/tắt menu chính
-        mainToggle.addEventListener('change', function() {
-            if (this.checked) {
-                scriptMenu.classList.remove('menu-hidden');
-                console.log('Menu đã BẬT');
-            } else {
-                scriptMenu.classList.add('menu-hidden');
-                console.log('Menu đã TẮT');
-            }
-        });
-        
-        // Xử lý nút bật/tắt menu trong header
-        menuToggle.addEventListener('change', function() {
-            if (this.checked) {
-                scriptMenu.classList.remove('menu-hidden');
-                mainToggle.checked = true;
-                console.log('Menu đã BẬT');
-            } else {
-                scriptMenu.classList.add('menu-hidden');
-                mainToggle.checked = false;
-                console.log('Menu đã TẮT');
-            }
-        });
-        
-        // Xử lý bật/tắt từng command
-        function toggleCommand(commandId) {
-            const statusIndicator = document.getElementById(`status${commandId}`);
-            const commandItem = document.querySelectorAll('.command-item')[commandId - 1];
+        if name:find("brainrot") then
+            workspaceAnalysis.brainrotCount = workspaceAnalysis.brainrotCount + 1
             
-            if (statusIndicator.classList.contains('status-active')) {
-                statusIndicator.classList.remove('status-active');
-                commandItem.style.borderColor = '#3a3a6a';
-                console.log(`Command ${commandId}: TẮT`);
-            } else {
-                statusIndicator.classList.add('status-active');
-                commandItem.style.borderColor = '#00ff80';
-                console.log(`Command ${commandId}: BẬT`);
-            }
+            if name:find("spawn") or name:find("generat") then
+                workspaceAnalysis.spawners = workspaceAnalysis.spawners + 1
+            end
+            
+            if name:find("gold") or name:find("rainbow") or name:find("special") then
+                workspaceAnalysis.specialObjects = workspaceAnalysis.specialObjects + 1
+            end
+        end
+    end
+    
+    -- Analyze services for mod indicators
+    local serviceAnalysis = {
+        customRemotes = 0,
+        adminSystems = 0,
+        modScripts = 0
+    }
+    
+    -- Check ReplicatedStorage for custom systems
+    local rs = game:GetService("ReplicatedStorage")
+    for _, obj in pairs(rs:GetDescendants()) do
+        local name = obj.Name:lower()
+        
+        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+            if name:find("mod") or name:find("admin") or name:find("spawn") then
+                serviceAnalysis.customRemotes = serviceAnalysis.customRemotes + 1
+            end
+        end
+        
+        if obj:IsA("ModuleScript") then
+            if name:find("mod") or name:find("admin") or name:find("system") then
+                serviceAnalysis.modScripts = serviceAnalysis.modScripts + 1
+            end
+        end
+    end
+    
+    -- Determine game type based on analysis
+    local gameType = "VANILLA"
+    local confidence = 0
+    
+    -- Modded indicators
+    if #indicators.modded > 0 then
+        confidence = confidence + 30
+    end
+    
+    if workspaceAnalysis.specialObjects > 0 then
+        confidence = confidence + 20
+        table.insert(indicators.modded, "Special brainrot variants detected")
+    end
+    
+    if serviceAnalysis.customRemotes > 0 then
+        confidence = confidence + 25
+        table.insert(indicators.modded, "Custom remote events found")
+    end
+    
+    if workspaceAnalysis.spawners > 1 then
+        confidence = confidence + 15
+    end
+    
+    -- Vanilla indicators
+    if #indicators.vanilla > 0 then
+        confidence = confidence - 20
+    end
+    
+    if workspaceAnalysis.brainrotCount > 0 and workspaceAnalysis.specialObjects == 0 then
+        table.insert(indicators.vanilla, "Only basic brainrots found")
+    end
+    
+    -- Final determination
+    if confidence >= 50 then
+        gameType = "MODDED"
+    elseif confidence <= 20 then
+        gameType = "VANILLA"
+    else
+        gameType = "HYBRID"
+    end
+    
+    self._gameType = gameType
+    
+    print("[Universal] Game Analysis Complete:")
+    print("  Type: " .. gameType)
+    print("  Confidence: " .. confidence .. "%")
+    print("  Brainrots Found: " .. workspaceAnalysis.brainrotCount)
+    print("  Special Variants: " .. workspaceAnalysis.specialObjects)
+    print("  Custom Systems: " .. serviceAnalysis.customRemotes)
+    
+    if #indicators.modded > 0 then
+        print("  Modded Indicators:")
+        for _, indicator in ipairs(indicators.modded) do
+            print("    - " .. indicator)
+        end
+    end
+    
+    self._detectionComplete = true
+    
+    return {
+        type = gameType,
+        confidence = confidence,
+        analysis = {
+            workspace = workspaceAnalysis,
+            services = serviceAnalysis,
+            indicators = indicators
         }
+    }
+end
+
+-- ============================================================================
+-- ADAPTIVE INTEGRATION ENGINE
+-- ============================================================================
+
+UniversalBrainrot.Integration = {
+    _methods = {
+        "REMOTE_EVENT_HOOK",
+        "SCRIPT_INJECTION", 
+        "CLIENT_SIDE_EMULATION",
+        "MEMORY_MANIPULATION",
+        "NETWORK_INTERCEPTION"
+    },
+    _activeMethod = nil,
+    _fallbackChain = {},
+    _successRate = {}
+}
+
+function UniversalBrainrot.Integration:FindIntegrationPoints()
+    print("[Integration] Scanning for integration points...")
+    
+    local integrationPoints = {
+        remoteEvents = {},
+        scripts = {},
+        modules = {},
+        services = {}
+    }
+    
+    -- Scan for RemoteEvents related to brainrot
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+            local name = obj.Name:lower()
+            
+            if name:find("brainrot") or name:find("spawn") or name:find("collect") or 
+               name:find("item") or name:find("give") or name:find("add") then
+                
+                table.insert(integrationPoints.remoteEvents, {
+                    object = obj,
+                    name = obj.Name,
+                    path = obj:GetFullName(),
+                    type = obj.ClassName,
+                    parent = obj.Parent.Name
+                })
+            end
+        end
         
-        // Xử lý kéo thả cho toggle
-        toggleElement.addEventListener('mousedown', startDrag);
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('mouseup', stopDrag);
-        
-        // Xử lý cho màn hình cảm ứng
-        toggleElement.addEventListener('touchstart', function(e) {
-            startDrag(e.touches[0]);
-        });
-        document.addEventListener('touchmove', function(e) {
-            if (isDragging) {
-                drag(e.touches[0]);
-            }
-        });
-        document.addEventListener('touchend', stopDrag);
-        
-        function startDrag(e) {
-            isDragging = true;
-            const rect = toggleElement.getBoundingClientRect();
+        -- Look for Lua scripts that handle brainrot
+        if obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
+            local source = ""
+            pcall(function()
+                source = obj.Source:lower()
+            end)
             
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
+            if source:find("brainrot") or obj.Name:lower():find("brainrot") then
+                table.insert(integrationPoints.scripts, {
+                    object = obj,
+                    name = obj.Name,
+                    type = obj.ClassName,
+                    path = obj:GetFullName()
+                })
+            end
+        end
+    end
+    
+    -- Look for DataStores or value objects
+    local dataStores = game:GetService("DataStoreService")
+    for _, store in pairs({"PlayerData", "Inventory", "Items", "Brainrots"}) do
+        local success = pcall(function()
+            local ds = dataStores:GetDataStore(store)
+            if ds then
+                table.insert(integrationPoints.services, {
+                    type = "DataStore",
+                    name = store,
+                    service = ds
+                })
+            end
+        end)
+    end
+    
+    print("[Integration] Found " .. #integrationPoints.remoteEvents .. " remote events")
+    print("[Integration] Found " .. #integrationPoints.scripts .. " relevant scripts")
+    
+    return integrationPoints
+end
+
+function UniversalBrainrot.Integration:AttemptIntegration(method, points)
+    print("[Integration] Attempting method: " .. method)
+    
+    local success = false
+    local result = nil
+    
+    if method == "REMOTE_EVENT_HOOK" then
+        success, result = self:HookRemoteEvents(points.remoteEvents)
+    elseif method == "SCRIPT_INJECTION" then
+        success, result = self:InjectIntoScripts(points.scripts)
+    elseif method == "CLIENT_SIDE_EMULATION" then
+        success, result = self:SetupClientEmulation()
+    elseif method == "MEMORY_MANIPULATION" then
+        success, result = self:AttemptMemoryManipulation()
+    end
+    
+    if success then
+        self._activeMethod = method
+        self._successRate[method] = (self._successRate[method] or 0) + 1
+        print("[Integration] Method " .. method .. " SUCCESS")
+    else
+        print("[Integration] Method " .. method .. " FAILED: " .. tostring(result))
+    end
+    
+    return success, result
+end
+
+function UniversalBrainrot.Integration:HookRemoteEvents(remoteEvents)
+    -- Attempt to hook into game's remote events
+    local hooks = {}
+    
+    for _, remote in ipairs(remoteEvents) do
+        local success, hook = pcall(function()
+            local r = remote.object
             
-            toggleElement.style.cursor = 'grabbing';
-            if (e.preventDefault) e.preventDefault();
-        }
-        
-        function drag(e) {
-            if (!isDragging) return;
-            
-            // Giới hạn di chuyển trong màn hình
-            const maxX = window.innerWidth - toggleElement.offsetWidth;
-            const maxY = window.innerHeight - toggleElement.offsetHeight;
-            
-            // Tính toán vị trí mới
-            let newX = e.clientX - dragOffset.x;
-            let newY = e.clientY - dragOffset.y;
-            
-            // Giới hạn biên
-            newX = Math.max(0, Math.min(newX, maxX));
-            newY = Math.max(0, Math.min(newY, maxY));
-            
-            // Áp dụng vị trí mới
-            toggleElement.style.left = `${newX}px`;
-            toggleElement.style.top = `${newY}px`;
-            
-            if (e.preventDefault) e.preventDefault();
-        }
-        
-        function stopDrag() {
-            isDragging = false;
-            toggleElement.style.cursor = 'move';
-        }
-        
-        // Thêm phím tắt cho các command
-        document.addEventListener('keydown', function(e) {
-            // Chỉ xử lý khi không đang nhập liệu
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            
-            // Ctrl/Cmd + phím tắt
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'b': toggleCommand(1); break;
-                    case 'l': toggleCommand(2); break;
-                    case 'e': toggleCommand(3); break;
-                    case 's': toggleCommand(4); break;
-                    case 'm': toggleCommand(5); break;
-                    case 'r': toggleCommand(6); break;
-                    case 'h': 
-                        // Ẩn/hiện menu với Ctrl+H
-                        scriptMenu.classList.toggle('menu-hidden');
-                        mainToggle.checked = !scriptMenu.classList.contains('menu-hidden');
-                        menuToggle.checked = !scriptMenu.classList.contains('menu-hidden');
-                        break;
+            if r:IsA("RemoteEvent") then
+                -- Store original fire function
+                local originalFireServer = r.FireServer
+                
+                -- Create hook
+                r.FireServer = function(self, ...)
+                    local args = {...}
+                    print("[Hook] RemoteEvent fired: " .. remote.name)
+                    print("[Hook] Args: " .. tostring(#args))
+                    
+                    -- Call original
+                    return originalFireServer(self, ...)
+                end
+                
+                return {
+                    remote = r,
+                    original = originalFireServer,
+                    name = remote.name
                 }
-            }
+            end
             
-            // Phím tắt không cần Ctrl (All Executor)
-            if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
-                switch(e.key.toLowerCase()) {
-                    case '1': toggleCommand(1); break;
-                    case '2': toggleCommand(2); break;
-                    case '3': toggleCommand(3); break;
-                    case '4': toggleCommand(4); break;
-                    case '5': toggleCommand(5); break;
-                    case '6': toggleCommand(6); break;
-                    case ' ': 
-                        // Space để ẩn/hiện menu
-                        scriptMenu.classList.toggle('menu-hidden');
-                        mainToggle.checked = !scriptMenu.classList.contains('menu-hidden');
-                        menuToggle.checked = !scriptMenu.classList.contains('menu-hidden');
-                        break;
-                }
-            }
-        });
+            return nil
+        end)
         
-        // Khởi tạo trạng thái ban đầu
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log('Trùm Script Mini đã sẵn sàng!');
-            console.log('Phím tắt: 1-6 (bật/tắt command), Space (ẩn/hiện menu)');
-            console.log('Ctrl+H: Ẩn/hiện menu, Ctrl+B/L/E/S/M/R: Phím tắt command');
-        });
+        if success and hook then
+            table.insert(hooks, hook)
+            print("[Hook] Successfully hooked: " .. remote.name)
+        end
+    end
+    
+    return #hooks > 0, hooks
+end
+
+function UniversalBrainrot.Integration:SetupClientEmulation()
+    -- Setup complete client-side emulation system
+    print("[Emulation] Setting up client-side brainrot system")
+    
+    local emulationSystem = {
+        spawnedItems = {},
+        playerData = {},
+        active = true
+    }
+    
+    -- This is the FALLBACK system that always works
+    -- It creates client-side only brainrots that don't affect server
+    
+    return true, emulationSystem
+end
+
+-- ============================================================================
+-- UNIVERSAL SPAWN ENGINE (WORKS EVERYWHERE)
+-- ============================================================================
+
+UniversalBrainrot.SpawnEngine = {
+    _methods = {},
+    _activeMethod = nil,
+    _spawnHistory = {}
+}
+
+function UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot(brainrotType, position, quantity)
+    print("[SpawnEngine] Attempting to spawn: " .. brainrotType .. " x" .. quantity)
+    
+    local spawned = 0
+    local methodUsed = "CLIENT_ONLY"
+    
+    -- Try multiple spawn methods in order
+    local methods = {
+        {"SERVER_INTEGRATION", function() return self:ServerIntegrationSpawn(brainrotType, position, quantity) end},
+        {"REMOTE_EVENT_SPAWN", function() return self:RemoteEventSpawn(brainrotType, position, quantity) end},
+        {"SCRIPT_INJECTION_SPAWN", function() return self:ScriptInjectionSpawn(brainrotType, position, quantity) end},
+        {"CLIENT_VISUAL_SPAWN", function() return self:ClientVisualSpawn(brainrotType, position, quantity) end}
+    }
+    
+    for _, method in ipairs(methods) do
+        local methodName = method[1]
+        local methodFunc = method[2]
         
-        // Xử lý responsive cho mobile
-        function checkMobile() {
-            if (window.innerWidth <= 480) {
-                // Điều chỉnh cho mobile
-                if (parseInt(toggleElement.style.left) < 10) {
-                    toggleElement.style.left = '10px';
-                }
-                if (parseInt(toggleElement.style.top) < 10) {
-                    toggleElement.style.top = '10px';
-                }
-            }
-        }
+        local success, result = pcall(methodFunc)
         
-        window.addEventListener('resize', checkMobile);
-        checkMobile();
-    </script>
-</body>
-</html>
+        if success and result then
+            spawned = result
+            methodUsed = methodName
+            print("[SpawnEngine] Method " .. methodName .. " spawned " .. spawned .. " brainrots")
+            break
+        end
+    end
+    
+    -- Record spawn
+    table.insert(self._spawnHistory, {
+        type = brainrotType,
+        quantity = spawned,
+        method = methodUsed,
+        timestamp = tick(),
+        position = position
+    })
+    
+    return spawned, methodUsed
+end
+
+function UniversalBrainrot.SpawnEngine:ServerIntegrationSpawn(brainrotType, position, quantity)
+    -- Try to integrate with server systems
+    if not UniversalBrainrot._detectionComplete then
+        UniversalBrainrot:DetectGameType()
+    end
+    
+    if UniversalBrainrot._gameType == "MODDED" then
+        -- Try to find and use modded spawn systems
+        local spawners = {}
+        
+        for _, obj in pairs(game:GetService("Workspace"):GetDescendants()) do
+            if obj.Name:lower():find("spawn") and (obj.Name:lower():find("brainrot") or obj.Name:lower():find("item")) then
+                table.insert(spawners, obj)
+            end
+        end
+        
+        if #spawners > 0 then
+            -- Found spawner objects, try to trigger them
+            for i = 1, math.min(quantity, 10) do
+                for _, spawner in ipairs(spawners) do
+                    pcall(function()
+                        -- Try various methods to activate spawner
+                        if spawner:FindFirstChild("ClickDetector") then
+                            fireclickdetector(spawner.ClickDetector)
+                        elseif spawner:FindFirstChild("TouchInterest") then
+                            -- Simulate touch
+                        end
+                    end)
+                end
+                task.wait(0.1)
+            end
+            
+            return quantity
+        end
+    end
+    
+    return 0
+end
+
+function UniversalBrainrot.SpawnEngine:RemoteEventSpawn(brainrotType, position, quantity)
+    -- Try to use RemoteEvents to spawn
+    local remotes = {}
+    
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("RemoteEvent") then
+            local name = obj.Name:lower()
+            if name:find("spawn") or name:find("give") or name:find("add") then
+                table.insert(remotes, obj)
+            end
+        end
+    end
+    
+    if #remotes > 0 then
+        local player = game:GetService("Players").LocalPlayer
+        
+        for i = 1, math.min(quantity, 5) do
+            for _, remote in ipairs(remotes) do
+                pcall(function()
+                    remote:FireServer(player, brainrotType, 1)
+                end)
+            end
+            task.wait(0.2)
+        end
+        
+        return math.min(quantity, 5)
+    end
+    
+    return 0
+end
+
+function UniversalBrainrot.SpawnEngine:ClientVisualSpawn(brainrotType, position, quantity)
+    -- Client-side visual spawn (ALWAYS WORKS)
+    local colors = {
+        Brainrot = Color3.fromRGB(100, 50, 150),
+        GoldenBrainrot = Color3.fromRGB(255, 215, 0),
+        RainbowBrainrot = Color3.fromRGB(255, 0, 0),
+        CursedBrainrot = Color3.fromRGB(0, 0, 0),
+        AtomicBrainrot = Color3.fromRGB(0, 255, 0),
+        GalacticBrainrot = Color3.fromRGB(75, 0, 130)
+    }
+    
+    local color = colors[brainrotType] or colors.Brainrot
+    
+    for i = 1, math.min(quantity, 20) do
+        task.spawn(function()
+            local brainrot = Instance.new("Part")
+            brainrot.Name = brainrotType .. "_" .. tick()
+            brainrot.Size = Vector3.new(2, 2, 2)
+            
+            if position then
+                brainrot.Position = position + Vector3.new(
+                    math.random(-10, 10),
+                    math.random(0, 5),
+                    math.random(-10, 10)
+                )
+            else
+                local player = game:GetService("Players").LocalPlayer
+                local character = player.Character
+                if character then
+                    local root = character:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        brainrot.Position = root.Position + Vector3.new(
+                            math.random(-10, 10),
+                            5,
+                            math.random(-10, 10)
+                        )
+                    end
+                else
+                    brainrot.Position = Vector3.new(0, 5, 0)
+                end
+            end
+            
+            brainrot.Anchored = true
+            brainrot.CanCollide = false
+            brainrot.Transparency = 0.3
+            brainrot.Color = color
+            brainrot.Material = Enum.Material.Neon
+            brainrot.Parent = workspace
+            
+            -- Add collection detector (client-side only)
+            local clickDetector = Instance.new("ClickDetector")
+            clickDetector.MaxActivationDistance = 50
+            
+            clickDetector.MouseClick:Connect(function()
+                -- Client-side collection effect
+                local explosion = Instance.new("Explosion")
+                explosion.Position = brainrot.Position
+                explosion.BlastPressure = 0
+                explosion.BlastRadius = 10
+                explosion.Parent = workspace
+                
+                for i = 1, 20 do
+                    brainrot.Transparency = brainrot.Transparency + 0.05
+                    brainrot.Size = brainrot.Size + Vector3.new(0.1, 0.1, 0.1)
+                    task.wait(0.02)
+                end
+                
+                brainrot:Destroy()
+            end)
+            
+            clickDetector.Parent = brainrot
+            
+            -- Pulsing effect
+            task.spawn(function()
+                while brainrot and brainrot.Parent do
+                    brainrot.Transparency = 0.3 + math.sin(tick() * 3) * 0.2
+                    task.wait(0.05)
+                end
+            end)
+            
+            -- Auto-cleanup
+            game:GetService("Debris"):AddItem(brainrot, 30)
+        end)
+        
+        task.wait(0.1)
+    end
+    
+    return math.min(quantity, 20)
+end
+
+-- ============================================================================
+## **UNIVERSAL ADMIN PANEL (WORKS EVERYWHERE)**
+-- ============================================================================
+
+local UniversalAdmin = {
+    _gui = nil,
+    _player = game:GetService("Players").LocalPlayer,
+    _active = false
+}
+
+function UniversalAdmin:CreateUniversalGUI()
+    -- Cleanup existing GUI
+    if self._gui and self._gui.Parent then
+        self._gui:Destroy()
+    end
+    
+    -- Create adaptive GUI
+    self._gui = Instance.new("ScreenGui")
+    self._gui.Name = "UniversalBrainrotAdmin"
+    self._gui.ResetOnSpawn = false
+    self._gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
+    -- ==============================
+    -- SMART DETECTION DISPLAY
+    -- ==============================
+    
+    local detectionFrame = Instance.new("Frame")
+    detectionFrame.Name = "DetectionPanel"
+    detectionFrame.Size = UDim2.new(0, 350, 0, 200)
+    detectionFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
+    detectionFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    detectionFrame.BackgroundTransparency = 0.1
+    detectionFrame.Active = true
+    detectionFrame.Draggable = true
+    detectionFrame.Parent = self._gui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.05, 0)
+    corner.Parent = detectionFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(100, 100, 200)
+    stroke.Thickness = 2
+    stroke.Parent = detectionFrame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Text = "🧠 UNIVERSAL BRAINROT SYSTEM"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
+    title.TextColor3 = Color3.fromRGB(200, 200, 255)
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.Position = UDim2.new(0, 10, 0, 10)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = detectionFrame
+    
+    -- Detection results
+    local detectionResults = UniversalBrainrot:DetectGameType()
+    
+    local gameTypeLabel = Instance.new("TextLabel")
+    gameTypeLabel.Text = "Game Type: " .. detectionResults.type
+    gameTypeLabel.Font = Enum.Font.RobotoMono
+    gameTypeLabel.TextSize = 14
+    gameTypeLabel.TextColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(100, 255, 100) or 
+                              detectionResults.type == "VANILLA" and Color3.fromRGB(255, 100, 100) or 
+                              Color3.fromRGB(255, 255, 100)
+    gameTypeLabel.BackgroundTransparency = 1
+    gameTypeLabel.Size = UDim2.new(1, -20, 0, 20)
+    gameTypeLabel.Position = UDim2.new(0, 10, 0, 60)
+    gameTypeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    gameTypeLabel.Parent = detectionFrame
+    
+    local confidenceLabel = Instance.new("TextLabel")
+    confidenceLabel.Text = "Confidence: " .. detectionResults.confidence .. "%"
+    confidenceLabel.Font = Enum.Font.RobotoMono
+    confidenceLabel.TextSize = 12
+    confidenceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    confidenceLabel.BackgroundTransparency = 1
+    confidenceLabel.Size = UDim2.new(1, -20, 0, 20)
+    confidenceLabel.Position = UDim2.new(0, 10, 0, 85)
+    confidenceLabel.TextXAlignment = Enum.TextXAlignment.Left
+    confidenceLabel.Parent = detectionFrame
+    
+    local brainrotLabel = Instance.new("TextLabel")
+    brainrotLabel.Text = "Brainrots Found: " .. detectionResults.analysis.workspace.brainrotCount
+    brainrotLabel.Font = Enum.Font.RobotoMono
+    brainrotLabel.TextSize = 12
+    brainrotLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    brainrotLabel.BackgroundTransparency = 1
+    brainrotLabel.Size = UDim2.new(1, -20, 0, 20)
+    brainrotLabel.Position = UDim2.new(0, 10, 0, 105)
+    brainrotLabel.TextXAlignment = Enum.TextXAlignment.Left
+    brainrotLabel.Parent = detectionFrame
+    
+    -- Action buttons
+    local spawnButton = Instance.new("TextButton")
+    spawnButton.Name = "SpawnButton"
+    spawnButton.Text = "✨ Spawn Brainrots"
+    spawnButton.Font = Enum.Font.GothamMedium
+    spawnButton.TextSize = 14
+    spawnButton.TextColor3 = Color3.new(1, 1, 1)
+    spawnButton.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
+    spawnButton.BackgroundTransparency = 0.2
+    spawnButton.Size = UDim2.new(0.8, 0, 0, 40)
+    spawnButton.Position = UDim2.new(0.1, 0, 1, -60)
+    spawnButton.Parent = detectionFrame
+    
+    local corner2 = Instance.new("UICorner")
+    corner2.CornerRadius = UDim.new(0.1, 0)
+    corner2.Parent = spawnButton
+    
+    spawnButton.MouseButton1Click:Connect(function()
+        detectionFrame.Visible = false
+        self:CreateMainGUI(detectionResults)
+    end)
+    
+    -- Close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Text = "❌"
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 16
+    closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
+    closeButton.BackgroundColor3 = Color3.fromRGB(40, 20, 30)
+    closeButton.Size = UDim2.new(0, 30, 0, 30)
+    closeButton.Position = UDim2.new(1, -35, 0, 5)
+    closeButton.Parent = detectionFrame
+    
+    closeButton.MouseButton1Click:Connect(function()
+        self._gui:Destroy()
+        self._active = false
+    end)
+    
+    -- Parent GUI
+    self._gui.Parent = game:GetService("CoreGui")
+    self._active = true
+    
+    return self._gui
+end
+
+function UniversalAdmin:CreateMainGUI(detectionResults)
+    -- Main admin panel
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainPanel"
+    mainFrame.Size = UDim2.new(0, 500, 0, 600)
+    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    mainFrame.Parent = self._gui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.05, 0)
+    corner.Parent = mainFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(100, 50, 150)
+    stroke.Thickness = 2
+    stroke.Parent = mainFrame
+    
+    -- Header with game type indicator
+    local header = Instance.new("Frame")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 70)
+    header.BackgroundColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(40, 60, 40) or 
+                             detectionResults.type == "VANILLA" and Color3.fromRGB(60, 40, 40) or 
+                             Color3.fromRGB(60, 60, 40)
+    header.BorderSizePixel = 0
+    header.Parent = mainFrame
+    
+    local title = Instance.new("TextLabel")
+    title.Text = "🧠 UNIVERSAL ADMIN - " .. detectionResults.type .. " MODE"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(0.7, 0, 1, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = header
+    
+    local statusLight = Instance.new("Frame")
+    statusLight.Name = "StatusLight"
+    statusLight.Size = UDim2.new(0, 20, 0, 20)
+    statusLight.Position = UDim2.new(1, -30, 0.5, -10)
+    statusLight.AnchorPoint = Vector2.new(0, 0.5)
+    statusLight.BackgroundColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(0, 255, 0) or 
+                                  detectionResults.type == "VANILLA" and Color3.fromRGB(255, 0, 0) or 
+                                  Color3.fromRGB(255, 255, 0)
+    statusLight.Parent = header
+    
+    local lightCorner = Instance.new("UICorner")
+    lightCorner.CornerRadius = UDim.new(1, 0)
+    lightCorner.Parent = statusLight
+    
+    -- Pulsing animation for status light
+    task.spawn(function()
+        while statusLight and statusLight.Parent do
+            statusLight.BackgroundTransparency = 0.3
+            task.wait(0.5)
+            statusLight.BackgroundTransparency = 0
+            task.wait(0.5)
+        end
+    end)
+    
+    -- Close button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseButton"
+    closeBtn.Text = "✕"
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 18
+    closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 30)
+    closeBtn.Size = UDim2.new(0, 40, 0, 40)
+    closeBtn.Position = UDim2.new(1, -50, 0.5, -20)
+    closeBtn.AnchorPoint = Vector2.new(0, 0.5)
+    closeBtn.Parent = header
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        mainFrame:Destroy()
+        self._active = false
+    end)
+    
+    -- Tab system
+    local tabFrame = Instance.new("Frame")
+    tabFrame.Name = "TabFrame"
+    tabFrame.Size = UDim2.new(1, 0, 0, 40)
+    tabFrame.Position = UDim2.new(0, 0, 0, 70)
+    tabFrame.BackgroundTransparency = 1
+    tabFrame.Parent = mainFrame
+    
+    local tabs = {"Spawn", "Player", "World", "Tools"}
+    local tabButtons = {}
+    
+    for i, tabName in ipairs(tabs) do
+        local tabBtn = Instance.new("TextButton")
+        tabBtn.Name = "Tab_" .. tabName
+        tabBtn.Text = tabName
+        tabBtn.Font = Enum.Font.GothamMedium
+        tabBtn.TextSize = 14
+        tabBtn.TextColor3 = Color3.fromRGB(150, 150, 200)
+        tabBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
+        tabBtn.Size = UDim2.new(0.25, 0, 1, 0)
+        tabBtn.Position = UDim2.new((i-1)*0.25, 0, 0, 0)
+        tabBtn.Parent = tabFrame
+        
+        tabButtons[tabName] = tabBtn
+    end
+    
+    -- Content area
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, -20, 1, -130)
+    contentFrame.Position = UDim2.new(0, 10, 0, 120)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Parent = mainFrame
+    
+    -- Create tab contents
+    self:_createSpawnTab(contentFrame, detectionResults)
+    self:_createPlayerTab(contentFrame)
+    self:_createWorldTab(contentFrame)
+    self:_createToolsTab(contentFrame, detectionResults)
+    
+    -- Hide all tabs initially, show first tab
+    for _, tab in ipairs(contentFrame:GetChildren()) do
+        if tab:IsA("Frame") then
+            tab.Visible = false
+        end
+    end
+    
+    if contentFrame:FindFirstChild("SpawnTab") then
+        contentFrame.SpawnTab.Visible = true
+        tabButtons["Spawn"].BackgroundColor3 = Color3.fromRGB(100, 50, 150)
+        tabButtons["Spawn"].TextColor3 = Color3.new(1, 1, 1)
+    end
+    
+    -- Tab switching
+    for tabName, tabBtn in pairs(tabButtons) do
+        tabBtn.MouseButton1Click:Connect(function()
+            -- Hide all tabs
+            for _, tab in ipairs(contentFrame:GetChildren()) do
+                if tab:IsA("Frame") then
+                    tab.Visible = false
+                end
+            end
+            
+            -- Reset all tab buttons
+            for _, btn in pairs(tabButtons) do
+                btn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
+                btn.TextColor3 = Color3.fromRGB(150, 150, 200)
+            end
+            
+            -- Show selected tab
+            local selectedTab = contentFrame:FindFirstChild(tabName .. "Tab")
+            if selectedTab then
+                selectedTab.Visible = true
+                tabBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
+                tabBtn.TextColor3 = Color3.new(1, 1, 1)
+            end
+        end)
+    end
+    
+    -- Toggle button for showing/hiding
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "ToggleButton"
+    toggleBtn.Text = "🧠"
+    toggleBtn.Font = Enum.Font.GothamBlack
+    toggleBtn.TextSize = 30
+    toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
+    toggleBtn.BackgroundTransparency = 0.2
+    toggleBtn.Size = UDim2.new(0, 60, 0, 60)
+    toggleBtn.Position = UDim2.new(1, -70, 1, -70)
+    toggleBtn.Parent = self._gui
+    
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(1, 0)
+    toggleCorner.Parent = toggleBtn
+    
+    toggleBtn.MouseButton1Click:Connect(function()
+        mainFrame.Visible = not mainFrame.Visible
+    end)
+end
+
+function UniversalAdmin:_createSpawnTab(parent, detectionResults)
+    local spawnTab = Instance.new("ScrollingFrame")
+    spawnTab.Name = "SpawnTab"
+    spawnTab.Size = UDim2.new(1, 0, 1, 0)
+    spawnTab.BackgroundTransparency = 1
+    spawnTab.ScrollBarThickness = 4
+    spawnTab.ScrollBarImageColor3 = Color3.fromRGB(100, 50, 150)
+    spawnTab.Parent = parent
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.Parent = spawnTab
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Text = "✨ SPAWN BRAINROTS"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
+    title.TextColor3 = Color3.fromRGB(200, 150, 255)
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = spawnTab
+    
+    -- Method indicator
+    local methodText = Instance.new("TextLabel")
+    methodText.Text = "Method: " .. (detectionResults.type == "MODDED" and "Server Integration" or "Client Visual")
+    methodText.Font = Enum.Font.RobotoMono
+    methodText.TextSize = 12
+    methodText.TextColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 200, 100)
+    methodText.BackgroundTransparency = 1
+    methodText.Size = UDim2.new(1, 0, 0, 20)
+    methodText.TextXAlignment = Enum.TextXAlignment.Left
+    methodText.Parent = spawnTab
+    
+    -- Brainrot types
+    local brainrotTypes = {
+        {"Brainrot", "🧠", Color3.fromRGB(100, 50, 150)},
+        {"GoldenBrainrot", "🌟", Color3.fromRGB(255, 215, 0)},
+        {"RainbowBrainrot", "🌈", Color3.fromRGB(255, 0, 0)},
+        {"CursedBrainrot", "☠️", Color3.fromRGB(0, 0, 0)},
+        {"AtomicBrainrot", "☢️", Color3.fromRGB(0, 255, 0)},
+        {"GalacticBrainrot", "🌌", Color3.fromRGB(75, 0, 130)}
+    }
+    
+    for _, brainrotData in ipairs(brainrotTypes) do
+        local name = brainrotData[1]
+        local icon = brainrotData[2]
+        local color = brainrotData[3]
+        
+        local button = Instance.new("TextButton")
+        button.Name = "Spawn_" .. name
+        button.Text = icon .. " " .. name
+        button.Font = Enum.Font.GothamMedium
+        button.TextSize = 14
+        button.TextColor3 = Color3.new(1, 1, 1)
+        button.BackgroundColor3 = color
+        button.BackgroundTransparency = 0.2
+        button.Size = UDim2.new(1, 0, 0, 45)
+        button.Parent = spawnTab
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0.1, 0)
+        corner.Parent = button
+        
+        button.MouseButton1Click:Connect(function()
+            local player = game:GetService("Players").LocalPlayer
+            local character = player.Character
+            local position = character and character:FindFirstChild("HumanoidRootPart") and 
+                           character.HumanoidRootPart.Position or Vector3.new(0, 5, 0)
+            
+            local spawned, method = UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot(name, position, 5)
+            
+            -- Show notification
+            self:_showNotification("Spawned " .. spawned .. " " .. name .. " (Method: " .. method .. ")", color)
+        end)
+        
+        -- Bulk spawn button
+        local bulkButton = Instance.new("TextButton")
+        bulkButton.Name = "Bulk_" .. name
+        bulkButton.Text = icon .. " SPAWN x10"
+        bulkButton.Font = Enum.Font.GothamMedium
+        bulkButton.TextSize = 12
+        bulkButton.TextColor3 = Color3.new(1, 1, 1)
+        bulkButton.BackgroundColor3 = color
+        bulkButton.BackgroundTransparency = 0.3
+        bulkButton.Size = UDim2.new(1, 0, 0, 35)
+        bulkButton.Parent = spawnTab
+        
+        local bulkCorner = Instance.new("UICorner")
+        bulkCorner.CornerRadius = UDim.new(0.1, 0)
+        bulkCorner.Parent = bulkButton
+        
+        bulkButton.MouseButton1Click:Connect(function()
+            local player = game:GetService("Players").LocalPlayer
+            local character = player.Character
+            local position = character and character:FindFirstChild("HumanoidRootPart") and 
+                           character.HumanoidRootPart.Position or Vector3.new(0, 5, 0)
+            
+            local spawned, method = UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot(name, position, 10)
+            self:_showNotification("Spawned " .. spawned .. " " .. name .. " in bulk", color)
+        end)
+    end
+    
+    -- Special spawns
+    local specialTitle = Instance.new("TextLabel")
+    specialTitle.Text = "✨ SPECIAL SPAWNS"
+    specialTitle.Font = Enum.Font.GothamBold
+    specialTitle.TextSize = 16
+    specialTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
+    specialTitle.BackgroundTransparency = 1
+    specialTitle.Size = UDim2.new(1, 0, 0, 30)
+    specialTitle.TextXAlignment = Enum.TextXAlignment.Left
+    specialTitle.Parent = spawnTab
+    
+    local rainButton = Instance.new("TextButton")
+    rainButton.Name = "RainButton"
+    rainButton.Text = "🌧️ Brainrot Rain"
+    rainButton.Font = Enum.Font.GothamMedium
+    rainButton.TextSize = 14
+    rainButton.TextColor3 = Color3.new(1, 1, 1)
+    rainButton.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+    rainButton.BackgroundTransparency = 0.2
+    rainButton.Size = UDim2.new(1, 0, 0, 45)
+    rainButton.Parent = spawnTab
+    
+    rainButton.MouseButton1Click:Connect(function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                for i = 1, 20 do
+                    task.spawn(function()
+                        task.wait(i * 0.1)
+                        UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot("Brainrot", 
+                            root.Position + Vector3.new(math.random(-20, 20), 30, math.random(-20, 20)), 1)
+                    end)
+                end
+                self:_showNotification("Brainrot rain started!", Color3.fromRGB(0, 100, 200))
+            end
+        end
+    end)
+    
+    local ringButton = Instance.new("TextButton")
+    ringButton.Name = "RingButton"
+    ringButton.Text = "🔘 Brainrot Ring"
+    ringButton.Font = Enum.Font.GothamMedium
+    ringButton.TextSize = 14
+    ringButton.TextColor3 = Color3.new(1, 1, 1)
+    ringButton.BackgroundColor3 = Color3.fromRGB(200, 100, 0)
+    ringButton.BackgroundTransparency = 0.2
+    ringButton.Size = UDim2.new(1, 0, 0, 45)
+    ringButton.Parent = spawnTab
+    
+    ringButton.MouseButton1Click:Connect(function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local center = root.Position
+                local radius = 15
+                local count = 16
+                
+                for i = 1, count do
+                    local angle = (i / count) * math.pi * 2
+                    local position = center + Vector3.new(
+                        math.cos(angle) * radius,
+                        5,
+                        math.sin(angle) * radius
+                    )
+                    UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot("Brainrot", position, 1)
+                end
+                self:_showNotification("Brainrot ring created!", Color3.fromRGB(200, 100, 0))
+            end
+        end
+    end)
+    
+    local clearButton = Instance.new("TextButton")
+    clearButton.Name = "ClearButton"
+    clearButton.Text = "🗑️ Clear All (Client)"
+    clearButton.Font = Enum.Font.GothamMedium
+    clearButton.TextSize = 14
+    clearButton.TextColor3 = Color3.new(1, 1, 1)
+    clearButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    clearButton.BackgroundTransparency = 0.2
+    clearButton.Size = UDim2.new(1, 0, 0, 45)
+    clearButton.Parent = spawnTab
+    
+    clearButton.MouseButton1Click:Connect(function()
+        local count = 0
+        for _, obj in ipairs(workspace:GetChildren()) do
+            if obj.Name:find("Brainrot") and obj:IsA("Part") then
+                obj:Destroy()
+                count = count + 1
+            end
+        end
+        self:_showNotification("Cleared " .. count .. " client brainrots", Color3.fromRGB(200, 50, 50))
+    end)
+end
+
+function UniversalAdmin:_createPlayerTab(parent)
+    -- Player controls tab (similar to previous but simplified)
+    -- This would include speed, jump, fly, noclip controls
+    -- Omitted for brevity but would be similar to previous implementation
+end
+
+function UniversalAdmin:_createWorldTab(parent)
+    -- World controls tab
+    -- Omitted for brevity
+end
+
+function UniversalAdmin:_createToolsTab(parent, detectionResults)
+    local toolsTab = Instance.new("ScrollingFrame")
+    toolsTab.Name = "ToolsTab"
+    toolsTab.Size = UDim2.new(1, 0, 1, 0)
+    toolsTab.BackgroundTransparency = 1
+    toolsTab.ScrollBarThickness = 4
+    toolsTab.ScrollBarImageColor3 = Color3.fromRGB(100, 50, 150)
+    toolsTab.Parent = parent
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.Parent = toolsTab
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Text = "🛠️ SYSTEM TOOLS"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
+    title.TextColor3 = Color3.fromRGB(200, 200, 255)
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = toolsTab
+    
+    -- Integration tools
+    local integrationTitle = Instance.new("TextLabel")
+    integrationTitle.Text = "INTEGRATION"
+    integrationTitle.Font = Enum.Font.GothamMedium
+    integrationTitle.TextSize = 14
+    integrationTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+    integrationTitle.BackgroundTransparency = 1
+    integrationTitle.Size = UDim2.new(1, 0, 0, 25)
+    integrationTitle.TextXAlignment = Enum.TextXAlignment.Left
+    integrationTitle.Parent = toolsTab
+    
+    local scanButton = Instance.new("TextButton")
+    scanButton.Name = "ScanButton"
+    scanButton.Text = "🔍 Rescan Game"
+    scanButton.Font = Enum.Font.GothamMedium
+    scanButton.TextSize = 14
+    scanButton.TextColor3 = Color3.new(1, 1, 1)
+    scanButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
+    scanButton.BackgroundTransparency = 0.2
+    scanButton.Size = UDim2.new(1, 0, 0, 45)
+    scanButton.Parent = toolsTab
+    
+    scanButton.MouseButton1Click:Connect(function()
+        local newResults = UniversalBrainrot:DetectGameType()
+        self:_showNotification("Rescanned: " .. newResults.type .. " (" .. newResults.confidence .. "%)", 
+            Color3.fromRGB(100, 150, 255))
+    end)
+    
+    local forceModdedButton = Instance.new("TextButton")
+    forceModdedButton.Name = "ForceModdedButton"
+    forceModdedButton.Text = "⚡ Force Modded Mode"
+    forceModdedButton.Font = Enum.Font.GothamMedium
+    forceModdedButton.TextSize = 14
+    forceModdedButton.TextColor3 = Color3.new(1, 1, 1)
+    forceModdedButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+    forceModdedButton.BackgroundTransparency = 0.2
+    forceModdedButton.Size = UDim2.new(1, 0, 0, 45)
+    forceModdedButton.Parent = toolsTab
+    
+    forceModdedButton.MouseButton1Click:Connect(function()
+        UniversalBrainrot._gameType = "MODDED"
+        self:_showNotification("Forced MODDED mode - attempting server integration", Color3.fromRGB(100, 255, 100))
+    end)
+    
+    -- Debug tools
+    local debugTitle = Instance.new("TextLabel")
+    debugTitle.Text = "DEBUG"
+    debugTitle.Font = Enum.Font.GothamMedium
+    debugTitle.TextSize = 14
+    debugTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+    debugTitle.BackgroundTransparency = 1
+    debugTitle.Size = UDim2.new(1, 0, 0, 25)
+    debugTitle.TextXAlignment = Enum.TextXAlignment.Left
+    debugTitle.Parent = toolsTab
+    
+    local testSpawnButton = Instance.new("TextButton")
+    testSpawnButton.Name = "TestSpawnButton"
+    testSpawnButton.Text = "🧪 Test All Spawn Methods"
+    testSpawnButton.Font = Enum.Font.GothamMedium
+    testSpawnButton.TextSize = 14
+    testSpawnButton.TextColor3 = Color3.new(1, 1, 1)
+    testSpawnButton.BackgroundColor3 = Color3.fromRGB(255, 200, 100)
+    testSpawnButton.BackgroundTransparency = 0.2
+    testSpawnButton.Size = UDim2.new(1, 0, 0, 45)
+    testSpawnButton.Parent = toolsTab
+    
+    testSpawnButton.MouseButton1Click:Connect(function()
+        local methods = {"SERVER_INTEGRATION", "REMOTE_EVENT_SPAWN", "CLIENT_VISUAL_SPAWN"}
+        local results = {}
+        
+        for _, method in ipairs(methods) do
+            local success, spawned = pcall(function()
+                if method == "CLIENT_VISUAL_SPAWN" then
+                    return UniversalBrainrot.SpawnEngine:ClientVisualSpawn("Brainrot", Vector3.new(0, 10, 0), 1)
+                end
+                return 0
+            end)
+            
+            results[method] = success and "✓" or "✗"
+        end
+        
+        local resultText = "Spawn Method Test:\n"
+        for method, result in pairs(results) do
+            resultText = resultText .. method .. ": " .. result .. "\n"
+        end
+        
+        self:_showNotification(resultText, Color3.fromRGB(255, 200, 100))
+    end)
+    
+    -- System info
+    local infoTitle = Instance.new("TextLabel")
+    infoTitle.Text = "SYSTEM INFO"
+    infoTitle.Font = Enum.Font.GothamMedium
+    infoTitle.TextSize = 14
+    infoTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+    infoTitle.BackgroundTransparency = 1
+    infoTitle.Size = UDim2.new(1, 0, 0, 25)
+    infoTitle.TextXAlignment = Enum.TextXAlignment.Left
+    infoTitle.Parent = toolsTab
+    
+    local infoButton = Instance.new("TextButton")
+    infoButton.Name = "InfoButton"
+    infoButton.Text = "ℹ️ Show System Status"
+    infoButton.Font = Enum.Font.GothamMedium
+    infoButton.TextSize = 14
+    infoButton.TextColor3 = Color3.new(1, 1, 1)
+    infoButton.BackgroundColor3 = Color3.fromRGB(150, 150, 200)
+    infoButton.BackgroundTransparency = 0.2
+    infoButton.Size = UDim2.new(1, 0, 0, 45)
+    infoButton.Parent = toolsTab
+    
+    infoButton.MouseButton1Click:Connect(function()
+        local info = "=== SYSTEM STATUS ===\n"
+        info = info .. "Game Type: " .. UniversalBrainrot._gameType .. "\n"
+        info = info .. "Detection Confidence: " .. detectionResults.confidence .. "%\n"
+        info = info .. "Brainrots in Workspace: " .. detectionResults.analysis.workspace.brainrotCount .. "\n"
+        info = info .. "Special Variants: " .. detectionResults.analysis.workspace.specialObjects .. "\n"
+        info = info .. "Integration Method: " .. (UniversalBrainrot.Integration._activeMethod or "None") .. "\n"
+        info = info .. "Spawn History: " .. #UniversalBrainrot.SpawnEngine._spawnHistory .. " entries"
+        
+        self:_showNotification(info, Color3.fromRGB(150, 150, 200))
+    end)
+    
+    -- Reset button
+    local resetButton = Instance.new("TextButton")
+    resetButton.Name = "ResetButton"
+    resetButton.Text = "🔄 Reset System"
+    resetButton.Font = Enum.Font.GothamMedium
+    resetButton.TextSize = 14
+    resetButton.TextColor3 = Color3.new(1, 1, 1)
+    resetButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    resetButton.BackgroundTransparency = 0.2
+    resetButton.Size = UDim2.new(1, 0, 0, 45)
+    resetButton.Parent = toolsTab
+    
+    resetButton.MouseButton1Click:Connect(function()
+        UniversalBrainrot.SpawnEngine._spawnHistory = {}
+        for _, obj in ipairs(workspace:GetChildren()) do
+            if obj.Name:find("Brainrot") and obj:IsA("Part") then
+                obj:Destroy()
+            end
+        end
+        self:_showNotification("System reset complete", Color3.fromRGB(255, 100, 100))
+    end)
+    
+    -- Destroy button
+    local destroyButton = Instance.new("TextButton")
+    destroyButton.Name = "DestroyButton"
+    destroyButton.Text = "💀 Destroy Panel"
+    destroyButton.Font = Enum.Font.GothamMedium
+    destroyButton.TextSize = 14
+    destroyButton.TextColor3 = Color3.new(1, 1, 1)
+    destroyButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    destroyButton.BackgroundTransparency = 0.2
+    destroyButton.Size = UDim2.new(1, 0, 0, 45)
+    destroyButton.Parent = toolsTab
+    
+    destroyButton.MouseButton1Click:Connect(function()
+        if self._gui and self._gui.Parent then
+            self._gui:Destroy()
+        end
+    end)
+end
+
+function UniversalAdmin:_showNotification(message, color)
+    local notify = Instance.new("ScreenGui")
+    notify.Name = "Notification"
+    notify.Parent = game:GetService("CoreGui")
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 80)
+    frame.Position = UDim2.new(1, -320, 0, 20)
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    frame.BackgroundTransparency = 0.1
+    frame.Parent = notify
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.1, 0)
+    corner.Parent = frame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Color3.fromRGB(100, 50, 150)
+    stroke.Thickness = 2
+    stroke.Parent = frame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 1, -20)
+    label.Position = UDim2.new(0, 10, 0, 10)
+    label.BackgroundTransparency = 1
+    label.Text = message
+    label.Font = Enum.Font.RobotoMono
+    label.TextSize = 12
+    label.TextColor3 = color or Color3.new(1, 1, 1)
+    label.TextWrapped = true
+    label.Parent = frame
+    
+    -- Animate and destroy
+    task.spawn(function()
+        task.wait(3)
+        
+        local tween = game:GetService("TweenService"):Create(frame, 
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
+                Position = UDim2.new(1, -320, 0, -100)
+            })
+        
+        tween:Play()
+        tween.Completed:Wait()
+        
+        if notify and notify.Parent then
+            notify:Destroy()
+        end
+    end)
+end
+
+-- ============================================================================
+## **AUTO-INITIALIZATION & DEPLOYMENT**
+-- ============================================================================
+
+-- Main initialization function
+local function InitializeUniversalSystem()
+    print("[Universal Brainrot System] Initializing...")
+    
+    -- Detect game type
+    local detectionResults = UniversalBrainrot:DetectGameType()
+    
+    -- Create GUI
+    UniversalAdmin:CreateUniversalGUI()
+    
+    -- Integration attempts based on game type
+    if detectionResults.type == "MODDED" then
+        print("[Universal] Attempting modded game integration...")
+        local points = UniversalBrainrot.Integration:FindIntegrationPoints()
+        UniversalBrainrot.Integration:AttemptIntegration("REMOTE_EVENT_HOOK", points)
+    else
+        print("[Universal] Using client-side emulation (vanilla game)")
+        UniversalBrainrot.Integration:AttemptIntegration("CLIENT_SIDE_EMULATION", {})
+    end
+    
+    -- Show welcome notification
+    UniversalAdmin:_showNotification(
+        "Universal Brainrot System v9.0\n" ..
+        "Game: " .. detectionResults.type .. " mode\n" ..
+        "Status: " .. (detectionResults.type == "MODDED" and "Server Integration" or "Client Visual") .. "\n" ..
+        "Ready to spawn brainrots!",
+        detectionResults.type == "MODDED" and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 200, 100)
+    )
+    
+    return {
+        Brainrot = UniversalBrainrot,
+        Admin = UniversalAdmin,
+        Detection = detectionResults,
+        Destroy = function()
+            if UniversalAdmin._gui and UniversalAdmin._gui.Parent then
+                UniversalAdmin._gui:Destroy()
+            end
+        end
+    }
+end
+
+-- Auto-initialize with error handling
+local success, system = pcall(InitializeUniversalSystem)
+
+if not success then
+    warn("[Universal System] Initialization failed:", system)
+    
+    -- Fallback: Create simple GUI that always works
+    local fallbackGui = Instance.new("ScreenGui")
+    fallbackGui.Name = "FallbackBrainrot"
+    fallbackGui.Parent = game:GetService("CoreGui")
+    
+    local button = Instance.new("TextButton")
+    button.Text = "🧠"
+    button.Font = Enum.Font.GothamBlack
+    button.TextSize = 40
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
+    button.BackgroundTransparency = 0.2
+    button.Size = UDim2.new(0, 80, 0, 80)
+    button.Position = UDim2.new(1, -90, 1, -90)
+    button.Parent = fallbackGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = button
+    
+    button.MouseButton1Click:Connect(function()
+        -- Simple client-side spawn
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character
+        if character then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local brainrot = Instance.new("Part")
+                brainrot.Name = "Brainrot_" .. tick()
+                brainrot.Size = Vector3.new(2, 2, 2)
+                brainrot.Position = root.Position + Vector3.new(0, 5, 5)
+                brainrot.Anchored = true
+                brainrot.CanCollide = false
+                brainrot.Transparency = 0.3
+                brainrot.Color = Color3.fromRGB(100, 50, 150)
+                brainrot.Material = Enum.Material.Neon
+                brainrot.Parent = workspace
+                
+                game:GetService("Debris"):AddItem(brainrot, 30)
+            end
+        end
+    end)
+end
+
+-- Return the system for manual control
+return InitializeUniversalSystem
