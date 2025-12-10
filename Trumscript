@@ -1,1435 +1,901 @@
 print("2")
 -- ============================================================================
--- UNIVERSAL BRAINROT MOD SYSTEM
--- Works on both modded AND vanilla "Steal a Brainrot" games
--- Adaptive approach with multiple integration strategies
+-- DELTA X BRAINROT UNIVERSAL - MOBILE OPTIMIZED
+-- Specifically optimized for Delta Executor on iOS/Android
+-- Touch interface, mobile performance, Delta API integration
 -- ============================================================================
 
 --[=[
-    SMART DETECTION SYSTEM:
-    1. Auto-detect if game is modded or vanilla
-    2. Use appropriate integration method
-    3. Fallback to client-side if server-side fails
-    4. Universal compatibility guaranteed
+    DELTA X SPECIFIC OPTIMIZATIONS:
+    1. Touch-optimized UI with iOS/Android design
+    2. Mobile performance tuning (lower particle counts, etc.)
+    3. Delta console integration for debugging
+    4. Battery-efficient operations
+    5. Gesture controls for mobile
 ]=]
 
-local UniversalBrainrot = {
-    _version = "v9.0-Universal",
-    _detectionComplete = false,
-    _gameType = "UNKNOWN", -- MODDED, VANILLA, CUSTOM
-    _integrationMethod = "ADAPTIVE",
-    _modules = {},
-    _hooks = {}
-}
+-- Delta Executor Detection
+local IS_DELTA = false
+local DELTA_API = {}
+local IS_IOS = false
+local IS_ANDROID = false
+
+-- Detect Delta Executor
+pcall(function()
+    if _G.Delta or delta then
+        IS_DELTA = true
+        DELTA_API = _G.Delta or delta
+        print("[Delta] Executor detected!")
+        
+        -- Try to detect platform
+        if DELTA_API.GetPlatform then
+            local platform = DELTA_API.GetPlatform()
+            IS_IOS = platform == "iOS"
+            IS_ANDROID = platform == "Android"
+        end
+    end
+end)
+
+-- Delta console logging
+local function DeltaLog(message, type)
+    if IS_DELTA then
+        if type == "error" then
+            pcall(function() DELTA_API.ConsoleError(message) end)
+        elseif type == "warn" then
+            pcall(function() DELTA_API.ConsoleWarn(message) end)
+        else
+            pcall(function() DELTA_API.ConsoleLog(message) end)
+        end
+    end
+    print("[Delta Brainrot] " .. message)
+end
 
 -- ============================================================================
--- ADVANCED GAME DETECTION ENGINE
+## **DELTA MOBILE OPTIMIZATION ENGINE**
 -- ============================================================================
 
-function UniversalBrainrot:DetectGameType()
-    print("[Universal] Analyzing game structure...")
-    
-    local indicators = {
-        modded = {},
-        vanilla = {},
-        custom = {}
-    }
-    
-    -- Check for modded game indicators
-    local moddedPatterns = {
-        "Modded", "Custom", "VIP", "Admin", "Extra", "Boost",
-        "Spawner", "AutoFarm", "OP", "Hacked", "Exploit"
-    }
-    
-    local vanillaPatterns = {
-        "Official", "Original", "[VANILLA]", "Clean", "Normal"
-    }
-    
-    -- Analyze game name
-    local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-    local placeName = game:GetService("Workspace").Name or ""
-    
-    -- Check game name for indicators
-    for _, pattern in ipairs(moddedPatterns) do
-        if gameName:lower():find(pattern:lower()) or placeName:lower():find(pattern:lower()) then
-            table.insert(indicators.modded, "Name contains: " .. pattern)
-        end
-    end
-    
-    for _, pattern in ipairs(vanillaPatterns) do
-        if gameName:lower():find(pattern:lower()) or placeName:lower():find(pattern:lower()) then
-            table.insert(indicators.vanilla, "Name contains: " .. pattern)
-        end
-    end
-    
-    -- Analyze game objects
-    local workspaceAnalysis = {
-        brainrotCount = 0,
-        spawners = 0,
-        specialObjects = 0
-    }
-    
-    -- Scan workspace for brainrot-related objects
-    for _, obj in pairs(game:GetService("Workspace"):GetDescendants()) do
-        local name = obj.Name:lower()
-        
-        if name:find("brainrot") then
-            workspaceAnalysis.brainrotCount = workspaceAnalysis.brainrotCount + 1
-            
-            if name:find("spawn") or name:find("generat") then
-                workspaceAnalysis.spawners = workspaceAnalysis.spawners + 1
-            end
-            
-            if name:find("gold") or name:find("rainbow") or name:find("special") then
-                workspaceAnalysis.specialObjects = workspaceAnalysis.specialObjects + 1
-            end
-        end
-    end
-    
-    -- Analyze services for mod indicators
-    local serviceAnalysis = {
-        customRemotes = 0,
-        adminSystems = 0,
-        modScripts = 0
-    }
-    
-    -- Check ReplicatedStorage for custom systems
-    local rs = game:GetService("ReplicatedStorage")
-    for _, obj in pairs(rs:GetDescendants()) do
-        local name = obj.Name:lower()
-        
-        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-            if name:find("mod") or name:find("admin") or name:find("spawn") then
-                serviceAnalysis.customRemotes = serviceAnalysis.customRemotes + 1
-            end
-        end
-        
-        if obj:IsA("ModuleScript") then
-            if name:find("mod") or name:find("admin") or name:find("system") then
-                serviceAnalysis.modScripts = serviceAnalysis.modScripts + 1
-            end
-        end
-    end
-    
-    -- Determine game type based on analysis
-    local gameType = "VANILLA"
-    local confidence = 0
-    
-    -- Modded indicators
-    if #indicators.modded > 0 then
-        confidence = confidence + 30
-    end
-    
-    if workspaceAnalysis.specialObjects > 0 then
-        confidence = confidence + 20
-        table.insert(indicators.modded, "Special brainrot variants detected")
-    end
-    
-    if serviceAnalysis.customRemotes > 0 then
-        confidence = confidence + 25
-        table.insert(indicators.modded, "Custom remote events found")
-    end
-    
-    if workspaceAnalysis.spawners > 1 then
-        confidence = confidence + 15
-    end
-    
-    -- Vanilla indicators
-    if #indicators.vanilla > 0 then
-        confidence = confidence - 20
-    end
-    
-    if workspaceAnalysis.brainrotCount > 0 and workspaceAnalysis.specialObjects == 0 then
-        table.insert(indicators.vanilla, "Only basic brainrots found")
-    end
-    
-    -- Final determination
-    if confidence >= 50 then
-        gameType = "MODDED"
-    elseif confidence <= 20 then
-        gameType = "VANILLA"
-    else
-        gameType = "HYBRID"
-    end
-    
-    self._gameType = gameType
-    
-    print("[Universal] Game Analysis Complete:")
-    print("  Type: " .. gameType)
-    print("  Confidence: " .. confidence .. "%")
-    print("  Brainrots Found: " .. workspaceAnalysis.brainrotCount)
-    print("  Special Variants: " .. workspaceAnalysis.specialObjects)
-    print("  Custom Systems: " .. serviceAnalysis.customRemotes)
-    
-    if #indicators.modded > 0 then
-        print("  Modded Indicators:")
-        for _, indicator in ipairs(indicators.modded) do
-            print("    - " .. indicator)
-        end
-    end
-    
-    self._detectionComplete = true
-    
-    return {
-        type = gameType,
-        confidence = confidence,
-        analysis = {
-            workspace = workspaceAnalysis,
-            services = serviceAnalysis,
-            indicators = indicators
+local DeltaOptimizer = {
+    Config = {
+        Performance = {
+            maxParticles = IS_IOS and 50 or 100,  -- iOS more strict
+            maxBrainrots = 15,  -- Lower for mobile
+            updateRate = 0.1,   -- Slower updates for battery
+            qualityLevel = "MEDIUM"
+        },
+        Controls = {
+            touchButtonSize = 60,  -- Minimum touch target size
+            gestureEnabled = true,
+            swipeSensitivity = 50
+        },
+        Visuals = {
+            transparency = 0.3,    -- Lower alpha for performance
+            simpleEffects = true,  -- No complex shaders
+            mobileColors = true    -- Brighter colors for mobile screens
         }
     }
-end
-
--- ============================================================================
--- ADAPTIVE INTEGRATION ENGINE
--- ============================================================================
-
-UniversalBrainrot.Integration = {
-    _methods = {
-        "REMOTE_EVENT_HOOK",
-        "SCRIPT_INJECTION", 
-        "CLIENT_SIDE_EMULATION",
-        "MEMORY_MANIPULATION",
-        "NETWORK_INTERCEPTION"
-    },
-    _activeMethod = nil,
-    _fallbackChain = {},
-    _successRate = {}
 }
 
-function UniversalBrainrot.Integration:FindIntegrationPoints()
-    print("[Integration] Scanning for integration points...")
+-- ============================================================================
+## **DELTA TOUCH INTERFACE ENGINE**
+-- ============================================================================
+
+local DeltaTouchUI = {
+    ScreenGui = nil,
+    MainMenu = nil,
+    FloatingButton = nil,
+    MenuOpen = false,
+    TouchGestures = {}
+}
+
+function DeltaTouchUI:Create()
+    -- Cleanup old GUI
+    if self.ScreenGui and self.ScreenGui.Parent then
+        self.ScreenGui:Destroy()
+    end
     
-    local integrationPoints = {
-        remoteEvents = {},
-        scripts = {},
-        modules = {},
-        services = {}
-    }
+    -- Create Delta-optimized ScreenGui
+    self.ScreenGui = Instance.new("ScreenGui")
+    self.ScreenGui.Name = "DeltaBrainrotUI_" .. tick()
+    self.ScreenGui.ResetOnSpawn = false
+    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    self.ScreenGui.IgnoreGuiInset = true  -- Full screen for mobile
     
-    -- Scan for RemoteEvents related to brainrot
-    for _, obj in pairs(game:GetDescendants()) do
-        if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-            local name = obj.Name:lower()
-            
-            if name:find("brainrot") or name:find("spawn") or name:find("collect") or 
-               name:find("item") or name:find("give") or name:find("add") then
-                
-                table.insert(integrationPoints.remoteEvents, {
-                    object = obj,
-                    name = obj.Name,
-                    path = obj:GetFullName(),
-                    type = obj.ClassName,
-                    parent = obj.Parent.Name
-                })
+    -- ==============================
+    -- DELTA FLOATING ACTION BUTTON (iOS/Android Style)
+    -- ==============================
+    
+    self.FloatingButton = Instance.new("TextButton")
+    self.FloatingButton.Name = "DeltaFAB"
+    self.FloatingButton.Text = "🧠"
+    self.FloatingButton.Font = Enum.Font.SourceSansBold
+    self.FloatingButton.TextSize = IS_IOS and 36 or 32
+    self.FloatingButton.TextColor3 = Color3.new(1, 1, 1)
+    self.FloatingButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)  -- iOS blue
+    
+    -- iOS-style floating button
+    local fabSize = DeltaOptimizer.Config.Controls.touchButtonSize + 10
+    self.FloatingButton.Size = UDim2.new(0, fabSize, 0, fabSize)
+    self.FloatingButton.Position = UDim2.new(1, -fabSize-20, 1, -fabSize-20)
+    self.FloatingButton.AutoButtonColor = true
+    self.FloatingButton.Active = true
+    
+    -- iOS shadow effect
+    local shadow = Instance.new("UIStroke")
+    shadow.Color = Color3.fromRGB(0, 0, 0)
+    shadow.Thickness = 2
+    shadow.Transparency = 0.3
+    shadow.Parent = self.FloatingButton
+    
+    -- Perfect circle
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = self.FloatingButton
+    
+    -- Pulsing animation
+    task.spawn(function()
+        while self.FloatingButton and self.FloatingButton.Parent do
+            for i = 0, 1, 0.05 do
+                if self.FloatingButton then
+                    self.FloatingButton.BackgroundTransparency = 0.1 + math.sin(tick() * 2) * 0.1
+                end
+                task.wait(0.05)
             end
         end
+    end)
+    
+    -- ==============================
+    -- DELTA SIDE MENU (Mobile Drawer)
+    -- ==============================
+    
+    self.MainMenu = Instance.new("Frame")
+    self.MainMenu.Name = "DeltaMenu"
+    self.MainMenu.BackgroundColor3 = Color3.fromRGB(28, 28, 30)  -- iOS dark gray
+    self.MainMenu.BackgroundTransparency = 0.05
+    self.MainMenu.BorderSizePixel = 0
+    self.MainMenu.Size = UDim2.new(0.85, 0, 1, 0)
+    self.MainMenu.Position = UDim2.new(-0.85, 0, 0, 0)  -- Hidden off-screen
+    self.MainMenu.Visible = true
+    
+    -- Menu header (iOS style)
+    local header = Instance.new("Frame")
+    header.Name = "MenuHeader"
+    header.Size = UDim2.new(1, 0, 0, 120)
+    header.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+    header.BorderSizePixel = 0
+    header.Parent = self.MainMenu
+    
+    local headerCorner = Instance.new("UICorner")
+    headerCorner.CornerRadius = UDim.new(0, 0, 0, 20)
+    headerCorner.Parent = header
+    
+    -- App icon and title
+    local icon = Instance.new("TextLabel")
+    icon.Name = "AppIcon"
+    icon.Text = "🧠"
+    icon.Font = Enum.Font.SourceSansBold
+    icon.TextSize = 48
+    icon.TextColor3 = Color3.new(1, 1, 1)
+    icon.BackgroundTransparency = 1
+    icon.Size = UDim2.new(0, 80, 0, 80)
+    icon.Position = UDim2.new(0.5, -40, 0, 20)
+    icon.Parent = header
+    
+    local title = Instance.new("TextLabel")
+    title.Name = "AppTitle"
+    title.Text = "Brainrot Delta"
+    title.Font = Enum.Font.SourceSansBold
+    title.TextSize = 24
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.BackgroundTransparency = 1
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Position = UDim2.new(0, 0, 0, 90)
+    title.Parent = header
+    
+    -- Game status indicator
+    local statusFrame = Instance.new("Frame")
+    statusFrame.Name = "StatusFrame"
+    statusFrame.Size = UDim2.new(1, -40, 0, 40)
+    statusFrame.Position = UDim2.new(0, 20, 0, 130)
+    statusFrame.BackgroundColor3 = Color3.fromRGB(44, 44, 46)
+    statusFrame.BackgroundTransparency = 0.1
+    statusFrame.Parent = self.MainMenu
+    
+    local statusCorner = Instance.new("UICorner")
+    statusCorner.CornerRadius = UDim.new(0.5, 0)
+    statusCorner.Parent = statusFrame
+    
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Name = "StatusLabel"
+    statusLabel.Text = "🔍 Detecting game..."
+    statusLabel.Font = Enum.Font.SourceSansSemibold
+    statusLabel.TextSize = 14
+    statusLabel.TextColor3 = Color3.new(1, 1, 1)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Size = UDim2.new(1, -20, 1, 0)
+    statusLabel.Position = UDim2.new(0, 10, 0, 0)
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statusLabel.Parent = statusFrame
+    
+    -- ==============================
+    -- COMMAND LIST (iOS Style List)
+    -- ==============================
+    
+    local commandsList = Instance.new("ScrollingFrame")
+    commandsList.Name = "CommandsList"
+    commandsList.Size = UDim2.new(1, 0, 1, -180)
+    commandsList.Position = UDim2.new(0, 0, 0, 180)
+    commandsList.BackgroundTransparency = 1
+    commandsList.ScrollBarThickness = 4
+    commandsList.ScrollBarImageColor3 = Color3.fromRGB(0, 122, 255)
+    commandsList.Parent = self.MainMenu
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Padding = UDim.new(0, 1)
+    listLayout.Parent = commandsList
+    
+    -- ==============================
+    -- CLOSE BUTTON
+    -- ==============================
+    
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Text = "✕"
+    closeButton.Font = Enum.Font.SourceSansBold
+    closeButton.TextSize = 28
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 59, 48)  -- iOS red
+    closeButton.BackgroundTransparency = 0.2
+    closeButton.Size = UDim2.new(0, 50, 0, 50)
+    closeButton.Position = UDim2.new(1, -60, 0, 20)
+    closeButton.Parent = self.MainMenu
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(1, 0)
+    closeCorner.Parent = closeButton
+    
+    -- ==============================
+    -- TOUCH GESTURE SETUP
+    -- ==============================
+    
+    if DeltaOptimizer.Config.Controls.gestureEnabled then
+        self:SetupTouchGestures()
+    end
+    
+    -- ==============================
+    -- EVENT HANDLERS
+    -- ==============================
+    
+    -- Floating button tap
+    self.FloatingButton.MouseButton1Click:Connect(function()
+        self:ToggleMenu()
+    end)
+    
+    -- Close button
+    closeButton.MouseButton1Click:Connect(function()
+        self:ToggleMenu(false)
+    end)
+    
+    -- Parent elements
+    self.FloatingButton.Parent = self.ScreenGui
+    self.MainMenu.Parent = self.ScreenGui
+    
+    -- Parent to CoreGui (Delta compatible)
+    self.ScreenGui.Parent = game:GetService("CoreGui")
+    
+    DeltaLog("Touch UI created for " .. (IS_IOS and "iOS" or IS_ANDROID and "Android" or "Delta"))
+    
+    return self
+end
+
+function DeltaTouchUI:SetupTouchGestures()
+    local UIS = game:GetService("UserInputService")
+    
+    -- Swipe from right edge to open
+    local touchStart = nil
+    local touchStartTime = 0
+    
+    UIS.TouchStarted:Connect(function(input, processed)
+        if processed then return end
         
-        -- Look for Lua scripts that handle brainrot
-        if obj:IsA("Script") or obj:IsA("LocalScript") or obj:IsA("ModuleScript") then
-            local source = ""
-            pcall(function()
-                source = obj.Source:lower()
+        -- Check if touch started near right edge
+        local screenSize = workspace.CurrentCamera.ViewportSize
+        if input.Position.X > screenSize.X * 0.9 then
+            touchStart = input.Position
+            touchStartTime = tick()
+        end
+    end)
+    
+    UIS.TouchEnded:Connect(function(input, processed)
+        if not touchStart then return end
+        
+        local delta = input.Position - touchStart
+        local duration = tick() - touchStartTime
+        
+        -- Quick left swipe opens menu
+        if delta.X < -DeltaOptimizer.Config.Controls.swipeSensitivity and 
+           math.abs(delta.Y) < 100 and 
+           duration < 0.5 then
+            self:ToggleMenu(true)
+        end
+        
+        touchStart = nil
+    end)
+    
+    -- Double tap to toggle menu
+    local lastTapTime = 0
+    UIS.TouchTap:Connect(function()
+        local currentTime = tick()
+        if currentTime - lastTapTime < 0.5 then
+            -- Double tap detected
+            self:ToggleMenu(not self.MenuOpen)
+        end
+        lastTapTime = currentTime
+    end)
+    
+    -- Swipe to close menu
+    UIS.InputBegan:Connect(function(input, processed)
+        if not self.MenuOpen then return end
+        if input.UserInputType ~= Enum.UserInputType.Touch then return end
+        
+        if input.Position.X < workspace.CurrentCamera.ViewportSize.X * 0.3 then
+            local connection
+            connection = UIS.InputChanged:Connect(function(changedInput)
+                if changedInput == input then
+                    local delta = input.Position - (touchStart or input.Position)
+                    if delta.X < -50 then
+                        self:ToggleMenu(false)
+                        connection:Disconnect()
+                    end
+                end
             end)
-            
-            if source:find("brainrot") or obj.Name:lower():find("brainrot") then
-                table.insert(integrationPoints.scripts, {
-                    object = obj,
-                    name = obj.Name,
-                    type = obj.ClassName,
-                    path = obj:GetFullName()
-                })
-            end
         end
-    end
-    
-    -- Look for DataStores or value objects
-    local dataStores = game:GetService("DataStoreService")
-    for _, store in pairs({"PlayerData", "Inventory", "Items", "Brainrots"}) do
-        local success = pcall(function()
-            local ds = dataStores:GetDataStore(store)
-            if ds then
-                table.insert(integrationPoints.services, {
-                    type = "DataStore",
-                    name = store,
-                    service = ds
-                })
-            end
-        end)
-    end
-    
-    print("[Integration] Found " .. #integrationPoints.remoteEvents .. " remote events")
-    print("[Integration] Found " .. #integrationPoints.scripts .. " relevant scripts")
-    
-    return integrationPoints
+    end)
 end
 
-function UniversalBrainrot.Integration:AttemptIntegration(method, points)
-    print("[Integration] Attempting method: " .. method)
-    
-    local success = false
-    local result = nil
-    
-    if method == "REMOTE_EVENT_HOOK" then
-        success, result = self:HookRemoteEvents(points.remoteEvents)
-    elseif method == "SCRIPT_INJECTION" then
-        success, result = self:InjectIntoScripts(points.scripts)
-    elseif method == "CLIENT_SIDE_EMULATION" then
-        success, result = self:SetupClientEmulation()
-    elseif method == "MEMORY_MANIPULATION" then
-        success, result = self:AttemptMemoryManipulation()
+function DeltaTouchUI:ToggleMenu(state)
+    if state == nil then
+        state = not self.MenuOpen
     end
     
-    if success then
-        self._activeMethod = method
-        self._successRate[method] = (self._successRate[method] or 0) + 1
-        print("[Integration] Method " .. method .. " SUCCESS")
-    else
-        print("[Integration] Method " .. method .. " FAILED: " .. tostring(result))
-    end
+    self.MenuOpen = state
     
-    return success, result
-end
-
-function UniversalBrainrot.Integration:HookRemoteEvents(remoteEvents)
-    -- Attempt to hook into game's remote events
-    local hooks = {}
+    local tweenService = game:GetService("TweenService")
     
-    for _, remote in ipairs(remoteEvents) do
-        local success, hook = pcall(function()
-            local r = remote.object
-            
-            if r:IsA("RemoteEvent") then
-                -- Store original fire function
-                local originalFireServer = r.FireServer
-                
-                -- Create hook
-                r.FireServer = function(self, ...)
-                    local args = {...}
-                    print("[Hook] RemoteEvent fired: " .. remote.name)
-                    print("[Hook] Args: " .. tostring(#args))
-                    
-                    -- Call original
-                    return originalFireServer(self, ...)
-                end
-                
-                return {
-                    remote = r,
-                    original = originalFireServer,
-                    name = remote.name
-                }
-            end
-            
-            return nil
-        end)
+    if state then
+        -- Slide in from left
+        local tween = tweenService:Create(self.MainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Position = UDim2.new(0, 0, 0, 0)
+        })
+        tween:Play()
         
-        if success and hook then
-            table.insert(hooks, hook)
-            print("[Hook] Successfully hooked: " .. remote.name)
-        end
+        -- Update FAB
+        self.FloatingButton.Text = "✕"
+        self.FloatingButton.BackgroundColor3 = Color3.fromRGB(255, 59, 48)  -- Red when open
+    else
+        -- Slide out to left
+        local tween = tweenService:Create(self.MainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Position = UDim2.new(-0.85, 0, 0, 0)
+        })
+        tween:Play()
+        
+        -- Update FAB
+        self.FloatingButton.Text = "🧠"
+        self.FloatingButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)  -- Blue when closed
     end
     
-    return #hooks > 0, hooks
+    DeltaLog("Menu " .. (state and "opened" or "closed"))
 end
 
-function UniversalBrainrot.Integration:SetupClientEmulation()
-    -- Setup complete client-side emulation system
-    print("[Emulation] Setting up client-side brainrot system")
+function DeltaTouchUI:UpdateStatus(message, color)
+    local statusLabel = self.MainMenu:FindFirstChild("StatusFrame"):FindFirstChild("StatusLabel")
+    if statusLabel then
+        statusLabel.Text = message
+        statusLabel.TextColor3 = color or Color3.new(1, 1, 1)
+    end
+end
+
+function DeltaTouchUI:CreateiOSButton(text, icon, callback, isToggle)
+    local button = Instance.new("TextButton")
+    button.Name = "iOSButton_" .. text
+    button.Text = ""
+    button.BackgroundColor3 = DeltaOptimizer.Config.Visuals.mobileColors and 
+                              Color3.fromRGB(44, 44, 46) or 
+                              Color3.fromRGB(40, 40, 42)
+    button.BackgroundTransparency = 0
+    button.AutoButtonColor = false
+    button.Size = UDim2.new(1, 0, 0, 70)
     
-    local emulationSystem = {
-        spawnedItems = {},
-        playerData = {},
-        active = true
-    }
+    -- Button background (iOS style)
+    local bg = Instance.new("Frame")
+    bg.Name = "Background"
+    bg.BackgroundColor3 = Color3.fromRGB(58, 58, 60)
+    bg.BackgroundTransparency = 0
+    bg.Size = UDim2.new(1, -20, 1, -10)
+    bg.Position = UDim2.new(0, 10, 0, 5)
+    bg.Parent = button
     
-    -- This is the FALLBACK system that always works
-    -- It creates client-side only brainrots that don't affect server
+    local bgCorner = Instance.new("UICorner")
+    bgCorner.CornerRadius = UDim.new(0.5, 0)
+    bgCorner.Parent = bg
     
-    return true, emulationSystem
+    -- Icon
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Name = "Icon"
+    iconLabel.Text = icon
+    iconLabel.Font = Enum.Font.SourceSansBold
+    iconLabel.TextSize = 24
+    iconLabel.TextColor3 = Color3.new(1, 1, 1)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Size = UDim2.new(0, 50, 1, 0)
+    iconLabel.Position = UDim2.new(0, 20, 0, 0)
+    iconLabel.TextXAlignment = Enum.TextXAlignment.Left
+    iconLabel.Parent = bg
+    
+    -- Text
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Name = "Text"
+    textLabel.Text = text
+    textLabel.Font = Enum.Font.SourceSansSemibold
+    textLabel.TextSize = IS_IOS and 18 or 16
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Size = UDim2.new(1, -80, 1, 0)
+    textLabel.Position = UDim2.new(0, 70, 0, 0)
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.Parent = bg
+    
+    -- Status indicator for toggles
+    if isToggle then
+        local statusLight = Instance.new("Frame")
+        statusLight.Name = "StatusLight"
+        statusLight.BackgroundColor3 = Color3.fromRGB(255, 59, 48)  -- Red = off
+        statusLight.Size = UDim2.new(0, 12, 0, 12)
+        statusLight.Position = UDim2.new(1, -25, 0.5, -6)
+        statusLight.AnchorPoint = Vector2.new(0, 0.5)
+        statusLight.Parent = bg
+        
+        local lightCorner = Instance.new("UICorner")
+        lightCorner.CornerRadius = UDim.new(1, 0)
+        lightCorner.Parent = statusLight
+    end
+    
+    -- Touch feedback
+    local originalColor = bg.BackgroundColor3
+    
+    button.MouseButton1Down:Connect(function()
+        bg.BackgroundColor3 = Color3.fromRGB(78, 78, 80)
+    end)
+    
+    button.MouseButton1Up:Connect(function()
+        bg.BackgroundColor3 = originalColor
+        if callback then
+            pcall(callback)
+        end
+    end)
+    
+    button.MouseLeave:Connect(function()
+        bg.BackgroundColor3 = originalColor
+    end)
+    
+    -- Haptic feedback simulation (would require Delta API)
+    button.MouseButton1Click:Connect(function()
+        if IS_DELTA and DELTA_API.HapticFeedback then
+            pcall(function() DELTA_API.HapticFeedback("light") end)
+        end
+    end)
+    
+    return button
 end
 
 -- ============================================================================
--- UNIVERSAL SPAWN ENGINE (WORKS EVERYWHERE)
+## **DELTA MOBILE SPAWN ENGINE**
 -- ============================================================================
 
-UniversalBrainrot.SpawnEngine = {
-    _methods = {},
-    _activeMethod = nil,
-    _spawnHistory = {}
+local DeltaSpawnEngine = {
+    ActiveBrainrots = {},
+    SpawnQueue = {},
+    MaxSpawned = DeltaOptimizer.Config.Performance.maxBrainrots
 }
 
-function UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot(brainrotType, position, quantity)
-    print("[SpawnEngine] Attempting to spawn: " .. brainrotType .. " x" .. quantity)
+function DeltaSpawnEngine:SpawnMobileBrainrot(brainrotType, position, quantity)
+    quantity = math.min(quantity, 5)  -- Limit for mobile
     
-    local spawned = 0
-    local methodUsed = "CLIENT_ONLY"
+    DeltaLog("Spawning " .. quantity .. " " .. brainrotType)
     
-    -- Try multiple spawn methods in order
-    local methods = {
-        {"SERVER_INTEGRATION", function() return self:ServerIntegrationSpawn(brainrotType, position, quantity) end},
-        {"REMOTE_EVENT_SPAWN", function() return self:RemoteEventSpawn(brainrotType, position, quantity) end},
-        {"SCRIPT_INJECTION_SPAWN", function() return self:ScriptInjectionSpawn(brainrotType, position, quantity) end},
-        {"CLIENT_VISUAL_SPAWN", function() return self:ClientVisualSpawn(brainrotType, position, quantity) end}
-    }
-    
-    for _, method in ipairs(methods) do
-        local methodName = method[1]
-        local methodFunc = method[2]
-        
-        local success, result = pcall(methodFunc)
-        
-        if success and result then
-            spawned = result
-            methodUsed = methodName
-            print("[SpawnEngine] Method " .. methodName .. " spawned " .. spawned .. " brainrots")
-            break
-        end
+    -- Check if we need to clean up old brainrots
+    if #self.ActiveBrainrots >= self.MaxSpawned then
+        self:CleanupOldest(math.floor(self.MaxSpawned / 2))
     end
     
-    -- Record spawn
-    table.insert(self._spawnHistory, {
-        type = brainrotType,
-        quantity = spawned,
-        method = methodUsed,
-        timestamp = tick(),
-        position = position
-    })
-    
-    return spawned, methodUsed
-end
-
-function UniversalBrainrot.SpawnEngine:ServerIntegrationSpawn(brainrotType, position, quantity)
-    -- Try to integrate with server systems
-    if not UniversalBrainrot._detectionComplete then
-        UniversalBrainrot:DetectGameType()
-    end
-    
-    if UniversalBrainrot._gameType == "MODDED" then
-        -- Try to find and use modded spawn systems
-        local spawners = {}
-        
-        for _, obj in pairs(game:GetService("Workspace"):GetDescendants()) do
-            if obj.Name:lower():find("spawn") and (obj.Name:lower():find("brainrot") or obj.Name:lower():find("item")) then
-                table.insert(spawners, obj)
-            end
-        end
-        
-        if #spawners > 0 then
-            -- Found spawner objects, try to trigger them
-            for i = 1, math.min(quantity, 10) do
-                for _, spawner in ipairs(spawners) do
-                    pcall(function()
-                        -- Try various methods to activate spawner
-                        if spawner:FindFirstChild("ClickDetector") then
-                            fireclickdetector(spawner.ClickDetector)
-                        elseif spawner:FindFirstChild("TouchInterest") then
-                            -- Simulate touch
-                        end
-                    end)
-                end
-                task.wait(0.1)
-            end
-            
-            return quantity
-        end
-    end
-    
-    return 0
-end
-
-function UniversalBrainrot.SpawnEngine:RemoteEventSpawn(brainrotType, position, quantity)
-    -- Try to use RemoteEvents to spawn
-    local remotes = {}
-    
-    for _, obj in pairs(game:GetDescendants()) do
-        if obj:IsA("RemoteEvent") then
-            local name = obj.Name:lower()
-            if name:find("spawn") or name:find("give") or name:find("add") then
-                table.insert(remotes, obj)
-            end
-        end
-    end
-    
-    if #remotes > 0 then
-        local player = game:GetService("Players").LocalPlayer
-        
-        for i = 1, math.min(quantity, 5) do
-            for _, remote in ipairs(remotes) do
-                pcall(function()
-                    remote:FireServer(player, brainrotType, 1)
-                end)
-            end
-            task.wait(0.2)
-        end
-        
-        return math.min(quantity, 5)
-    end
-    
-    return 0
-end
-
-function UniversalBrainrot.SpawnEngine:ClientVisualSpawn(brainrotType, position, quantity)
-    -- Client-side visual spawn (ALWAYS WORKS)
     local colors = {
         Brainrot = Color3.fromRGB(100, 50, 150),
-        GoldenBrainrot = Color3.fromRGB(255, 215, 0),
-        RainbowBrainrot = Color3.fromRGB(255, 0, 0),
-        CursedBrainrot = Color3.fromRGB(0, 0, 0),
-        AtomicBrainrot = Color3.fromRGB(0, 255, 0),
-        GalacticBrainrot = Color3.fromRGB(75, 0, 130)
+        Golden = Color3.fromRGB(255, 215, 0),
+        Rainbow = Color3.fromRGB(255, 50, 50),
+        Atomic = Color3.fromRGB(0, 255, 100),
+        Galactic = Color3.fromRGB(100, 50, 255)
     }
     
     local color = colors[brainrotType] or colors.Brainrot
     
-    for i = 1, math.min(quantity, 20) do
+    for i = 1, quantity do
         task.spawn(function()
+            task.wait(i * 0.2)  -- Stagger spawns
+            
             local brainrot = Instance.new("Part")
-            brainrot.Name = brainrotType .. "_" .. tick()
-            brainrot.Size = Vector3.new(2, 2, 2)
-            
-            if position then
-                brainrot.Position = position + Vector3.new(
-                    math.random(-10, 10),
-                    math.random(0, 5),
-                    math.random(-10, 10)
-                )
-            else
-                local player = game:GetService("Players").LocalPlayer
-                local character = player.Character
-                if character then
-                    local root = character:FindFirstChild("HumanoidRootPart")
-                    if root then
-                        brainrot.Position = root.Position + Vector3.new(
-                            math.random(-10, 10),
-                            5,
-                            math.random(-10, 10)
-                        )
-                    end
-                else
-                    brainrot.Position = Vector3.new(0, 5, 0)
-                end
-            end
-            
+            brainrot.Name = brainrotType .. "_Delta_" .. tick()
+            brainrot.Size = Vector3.new(1.5, 1.5, 1.5)  -- Smaller for mobile
+            brainrot.Position = position + Vector3.new(
+                math.random(-8, 8),
+                math.random(2, 6),
+                math.random(-8, 8)
+            )
             brainrot.Anchored = true
             brainrot.CanCollide = false
-            brainrot.Transparency = 0.3
+            brainrot.Transparency = DeltaOptimizer.Config.Visuals.transparency
             brainrot.Color = color
             brainrot.Material = Enum.Material.Neon
             brainrot.Parent = workspace
             
-            -- Add collection detector (client-side only)
-            local clickDetector = Instance.new("ClickDetector")
-            clickDetector.MaxActivationDistance = 50
+            -- Mobile-optimized effects
+            self:AddMobileEffects(brainrot, brainrotType)
             
-            clickDetector.MouseClick:Connect(function()
-                -- Client-side collection effect
-                local explosion = Instance.new("Explosion")
-                explosion.Position = brainrot.Position
-                explosion.BlastPressure = 0
-                explosion.BlastRadius = 10
-                explosion.Parent = workspace
-                
-                for i = 1, 20 do
-                    brainrot.Transparency = brainrot.Transparency + 0.05
-                    brainrot.Size = brainrot.Size + Vector3.new(0.1, 0.1, 0.1)
-                    task.wait(0.02)
+            -- Collection system
+            local clickDetector = Instance.new("ClickDetector")
+            clickDetector.MaxActivationDistance = 30
+            
+            clickDetector.MouseClick:Connect(function(player)
+                if player == game:GetService("Players").LocalPlayer then
+                    self:CollectBrainrot(brainrot, brainrotType)
                 end
-                
-                brainrot:Destroy()
             end)
             
             clickDetector.Parent = brainrot
             
-            -- Pulsing effect
-            task.spawn(function()
-                while brainrot and brainrot.Parent do
-                    brainrot.Transparency = 0.3 + math.sin(tick() * 3) * 0.2
-                    task.wait(0.05)
+            -- Track brainrot
+            table.insert(self.ActiveBrainrots, {
+                part = brainrot,
+                type = brainrotType,
+                spawnTime = tick()
+            })
+            
+            -- Auto cleanup after 25 seconds
+            task.delay(25, function()
+                if brainrot and brainrot.Parent then
+                    brainrot:Destroy()
                 end
             end)
-            
-            -- Auto-cleanup
-            game:GetService("Debris"):AddItem(brainrot, 30)
         end)
-        
-        task.wait(0.1)
     end
     
-    return math.min(quantity, 20)
+    return quantity
+end
+
+function DeltaSpawnEngine:AddMobileEffects(part, brainrotType)
+    -- Simple, performance-friendly effects
+    
+    -- Gentle floating animation
+    task.spawn(function()
+        local startY = part.Position.Y
+        local time = 0
+        
+        while part and part.Parent do
+            time = time + DeltaOptimizer.Config.Performance.updateRate
+            part.Position = Vector3.new(
+                part.Position.X,
+                startY + math.sin(time * 2) * 0.5,  -- Reduced movement
+                part.Position.Z
+            )
+            part.CFrame = part.CFrame * CFrame.Angles(0, 0.01, 0)  -- Slow rotation
+            task.wait(DeltaOptimizer.Config.Performance.updateRate)
+        end
+    end)
+    
+    -- Simple pulsing transparency
+    task.spawn(function()
+        while part and part.Parent do
+            part.Transparency = DeltaOptimizer.Config.Visuals.transparency + 
+                               math.sin(tick() * 2) * 0.15
+            task.wait(0.1)
+        end
+    end)
+    
+    -- Minimal particles for mobile
+    if DeltaOptimizer.Config.Performance.maxParticles > 0 then
+        local particles = Instance.new("ParticleEmitter")
+        particles.Texture = "rbxassetid://2428429221"
+        particles.Color = ColorSequence.new(part.Color)
+        particles.Size = NumberSequence.new(0.2, 0.5)
+        particles.Transparency = NumberSequence.new(0.5, 0.9)
+        particles.Lifetime = NumberRange.new(0.5, 1)
+        particles.Rate = DeltaOptimizer.Config.Performance.maxParticles / 5  -- Reduced
+        particles.Speed = NumberRange.new(1, 3)  -- Slower
+        particles.Parent = part
+    end
+    
+    -- Simple light (optional for performance)
+    if DeltaOptimizer.Config.Performance.qualityLevel ~= "LOW" then
+        local light = Instance.new("PointLight")
+        light.Brightness = 1
+        light.Range = 15
+        light.Color = part.Color
+        light.Parent = part
+    end
+end
+
+function DeltaSpawnEngine:CollectBrainrot(part, brainrotType)
+    -- Collection effects optimized for mobile
+    DeltaLog("Collected " .. brainrotType)
+    
+    -- Quick fade out
+    for i = 1, 10 do
+        if part then
+            part.Transparency = part.Transparency + 0.1
+            part.Size = part.Size * 0.9
+            task.wait(0.03)
+        end
+    end
+    
+    -- Remove from tracking
+    for i, brainrot in ipairs(self.ActiveBrainrots) do
+        if brainrot.part == part then
+            table.remove(self.ActiveBrainrots, i)
+            break
+        end
+    end
+    
+    -- Destroy
+    if part then
+        part:Destroy()
+    end
+    
+    -- Show notification
+    DeltaTouchUI:UpdateStatus("✓ Collected " .. brainrotType, Color3.fromRGB(100, 255, 100))
+end
+
+function DeltaSpawnEngine:CleanupOldest(count)
+    count = math.min(count or 5, #self.ActiveBrainrots)
+    
+    for i = 1, count do
+        local brainrot = self.ActiveBrainrots[1]
+        if brainrot and brainrot.part then
+            brainrot.part:Destroy()
+            table.remove(self.ActiveBrainrots, 1)
+        end
+    end
+    
+    DeltaLog("Cleaned up " .. count .. " old brainrots")
+end
+
+function DeltaSpawnEngine:ClearAll()
+    for _, brainrot in ipairs(self.ActiveBrainrots) do
+        if brainrot.part then
+            brainrot.part:Destroy()
+        end
+    end
+    self.ActiveBrainrots = {}
+    DeltaLog("Cleared all brainrots")
 end
 
 -- ============================================================================
-## **UNIVERSAL ADMIN PANEL (WORKS EVERYWHERE)**
+## **DELTA GAME DETECTION**
 -- ============================================================================
 
-local UniversalAdmin = {
-    _gui = nil,
-    _player = game:GetService("Players").LocalPlayer,
-    _active = false
+local DeltaGameDetector = {
+    GameType = "UNKNOWN",
+    DetectedFeatures = {},
+    IntegrationPoints = {}
 }
 
-function UniversalAdmin:CreateUniversalGUI()
-    -- Cleanup existing GUI
-    if self._gui and self._gui.Parent then
-        self._gui:Destroy()
-    end
+function DeltaGameDetector:AnalyzeGame()
+    DeltaLog("Analyzing game for Delta...")
     
-    -- Create adaptive GUI
-    self._gui = Instance.new("ScreenGui")
-    self._gui.Name = "UniversalBrainrotAdmin"
-    self._gui.ResetOnSpawn = false
-    self._gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    local analysis = {
+        brainrotCount = 0,
+        spawnPoints = 0,
+        customScripts = 0,
+        remoteEvents = 0
+    }
     
-    -- ==============================
-    -- SMART DETECTION DISPLAY
-    -- ==============================
-    
-    local detectionFrame = Instance.new("Frame")
-    detectionFrame.Name = "DetectionPanel"
-    detectionFrame.Size = UDim2.new(0, 350, 0, 200)
-    detectionFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
-    detectionFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    detectionFrame.BackgroundTransparency = 0.1
-    detectionFrame.Active = true
-    detectionFrame.Draggable = true
-    detectionFrame.Parent = self._gui
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0.05, 0)
-    corner.Parent = detectionFrame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(100, 100, 200)
-    stroke.Thickness = 2
-    stroke.Parent = detectionFrame
-    
-    -- Title
-    local title = Instance.new("TextLabel")
-    title.Text = "🧠 UNIVERSAL BRAINROT SYSTEM"
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 18
-    title.TextColor3 = Color3.fromRGB(200, 200, 255)
-    title.BackgroundTransparency = 1
-    title.Size = UDim2.new(1, 0, 0, 40)
-    title.Position = UDim2.new(0, 10, 0, 10)
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = detectionFrame
-    
-    -- Detection results
-    local detectionResults = UniversalBrainrot:DetectGameType()
-    
-    local gameTypeLabel = Instance.new("TextLabel")
-    gameTypeLabel.Text = "Game Type: " .. detectionResults.type
-    gameTypeLabel.Font = Enum.Font.RobotoMono
-    gameTypeLabel.TextSize = 14
-    gameTypeLabel.TextColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(100, 255, 100) or 
-                              detectionResults.type == "VANILLA" and Color3.fromRGB(255, 100, 100) or 
-                              Color3.fromRGB(255, 255, 100)
-    gameTypeLabel.BackgroundTransparency = 1
-    gameTypeLabel.Size = UDim2.new(1, -20, 0, 20)
-    gameTypeLabel.Position = UDim2.new(0, 10, 0, 60)
-    gameTypeLabel.TextXAlignment = Enum.TextXAlignment.Left
-    gameTypeLabel.Parent = detectionFrame
-    
-    local confidenceLabel = Instance.new("TextLabel")
-    confidenceLabel.Text = "Confidence: " .. detectionResults.confidence .. "%"
-    confidenceLabel.Font = Enum.Font.RobotoMono
-    confidenceLabel.TextSize = 12
-    confidenceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    confidenceLabel.BackgroundTransparency = 1
-    confidenceLabel.Size = UDim2.new(1, -20, 0, 20)
-    confidenceLabel.Position = UDim2.new(0, 10, 0, 85)
-    confidenceLabel.TextXAlignment = Enum.TextXAlignment.Left
-    confidenceLabel.Parent = detectionFrame
-    
-    local brainrotLabel = Instance.new("TextLabel")
-    brainrotLabel.Text = "Brainrots Found: " .. detectionResults.analysis.workspace.brainrotCount
-    brainrotLabel.Font = Enum.Font.RobotoMono
-    brainrotLabel.TextSize = 12
-    brainrotLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-    brainrotLabel.BackgroundTransparency = 1
-    brainrotLabel.Size = UDim2.new(1, -20, 0, 20)
-    brainrotLabel.Position = UDim2.new(0, 10, 0, 105)
-    brainrotLabel.TextXAlignment = Enum.TextXAlignment.Left
-    brainrotLabel.Parent = detectionFrame
-    
-    -- Action buttons
-    local spawnButton = Instance.new("TextButton")
-    spawnButton.Name = "SpawnButton"
-    spawnButton.Text = "✨ Spawn Brainrots"
-    spawnButton.Font = Enum.Font.GothamMedium
-    spawnButton.TextSize = 14
-    spawnButton.TextColor3 = Color3.new(1, 1, 1)
-    spawnButton.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
-    spawnButton.BackgroundTransparency = 0.2
-    spawnButton.Size = UDim2.new(0.8, 0, 0, 40)
-    spawnButton.Position = UDim2.new(0.1, 0, 1, -60)
-    spawnButton.Parent = detectionFrame
-    
-    local corner2 = Instance.new("UICorner")
-    corner2.CornerRadius = UDim.new(0.1, 0)
-    corner2.Parent = spawnButton
-    
-    spawnButton.MouseButton1Click:Connect(function()
-        detectionFrame.Visible = false
-        self:CreateMainGUI(detectionResults)
-    end)
-    
-    -- Close button
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Text = "❌"
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.TextSize = 16
-    closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-    closeButton.BackgroundColor3 = Color3.fromRGB(40, 20, 30)
-    closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.Position = UDim2.new(1, -35, 0, 5)
-    closeButton.Parent = detectionFrame
-    
-    closeButton.MouseButton1Click:Connect(function()
-        self._gui:Destroy()
-        self._active = false
-    end)
-    
-    -- Parent GUI
-    self._gui.Parent = game:GetService("CoreGui")
-    self._active = true
-    
-    return self._gui
-end
-
-function UniversalAdmin:CreateMainGUI(detectionResults)
-    -- Main admin panel
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainPanel"
-    mainFrame.Size = UDim2.new(0, 500, 0, 600)
-    mainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-    mainFrame.BackgroundTransparency = 0.1
-    mainFrame.Active = true
-    mainFrame.Draggable = true
-    mainFrame.Parent = self._gui
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0.05, 0)
-    corner.Parent = mainFrame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(100, 50, 150)
-    stroke.Thickness = 2
-    stroke.Parent = mainFrame
-    
-    -- Header with game type indicator
-    local header = Instance.new("Frame")
-    header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 70)
-    header.BackgroundColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(40, 60, 40) or 
-                             detectionResults.type == "VANILLA" and Color3.fromRGB(60, 40, 40) or 
-                             Color3.fromRGB(60, 60, 40)
-    header.BorderSizePixel = 0
-    header.Parent = mainFrame
-    
-    local title = Instance.new("TextLabel")
-    title.Text = "🧠 UNIVERSAL ADMIN - " .. detectionResults.type .. " MODE"
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 20
-    title.TextColor3 = Color3.new(1, 1, 1)
-    title.BackgroundTransparency = 1
-    title.Size = UDim2.new(0.7, 0, 1, 0)
-    title.Position = UDim2.new(0, 15, 0, 0)
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = header
-    
-    local statusLight = Instance.new("Frame")
-    statusLight.Name = "StatusLight"
-    statusLight.Size = UDim2.new(0, 20, 0, 20)
-    statusLight.Position = UDim2.new(1, -30, 0.5, -10)
-    statusLight.AnchorPoint = Vector2.new(0, 0.5)
-    statusLight.BackgroundColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(0, 255, 0) or 
-                                  detectionResults.type == "VANILLA" and Color3.fromRGB(255, 0, 0) or 
-                                  Color3.fromRGB(255, 255, 0)
-    statusLight.Parent = header
-    
-    local lightCorner = Instance.new("UICorner")
-    lightCorner.CornerRadius = UDim.new(1, 0)
-    lightCorner.Parent = statusLight
-    
-    -- Pulsing animation for status light
-    task.spawn(function()
-        while statusLight and statusLight.Parent do
-            statusLight.BackgroundTransparency = 0.3
-            task.wait(0.5)
-            statusLight.BackgroundTransparency = 0
-            task.wait(0.5)
-        end
-    end)
-    
-    -- Close button
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Name = "CloseButton"
-    closeBtn.Text = "✕"
-    closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.TextSize = 18
-    closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 30)
-    closeBtn.Size = UDim2.new(0, 40, 0, 40)
-    closeBtn.Position = UDim2.new(1, -50, 0.5, -20)
-    closeBtn.AnchorPoint = Vector2.new(0, 0.5)
-    closeBtn.Parent = header
-    
-    closeBtn.MouseButton1Click:Connect(function()
-        mainFrame:Destroy()
-        self._active = false
-    end)
-    
-    -- Tab system
-    local tabFrame = Instance.new("Frame")
-    tabFrame.Name = "TabFrame"
-    tabFrame.Size = UDim2.new(1, 0, 0, 40)
-    tabFrame.Position = UDim2.new(0, 0, 0, 70)
-    tabFrame.BackgroundTransparency = 1
-    tabFrame.Parent = mainFrame
-    
-    local tabs = {"Spawn", "Player", "World", "Tools"}
-    local tabButtons = {}
-    
-    for i, tabName in ipairs(tabs) do
-        local tabBtn = Instance.new("TextButton")
-        tabBtn.Name = "Tab_" .. tabName
-        tabBtn.Text = tabName
-        tabBtn.Font = Enum.Font.GothamMedium
-        tabBtn.TextSize = 14
-        tabBtn.TextColor3 = Color3.fromRGB(150, 150, 200)
-        tabBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
-        tabBtn.Size = UDim2.new(0.25, 0, 1, 0)
-        tabBtn.Position = UDim2.new((i-1)*0.25, 0, 0, 0)
-        tabBtn.Parent = tabFrame
-        
-        tabButtons[tabName] = tabBtn
-    end
-    
-    -- Content area
-    local contentFrame = Instance.new("Frame")
-    contentFrame.Name = "ContentFrame"
-    contentFrame.Size = UDim2.new(1, -20, 1, -130)
-    contentFrame.Position = UDim2.new(0, 10, 0, 120)
-    contentFrame.BackgroundTransparency = 1
-    contentFrame.Parent = mainFrame
-    
-    -- Create tab contents
-    self:_createSpawnTab(contentFrame, detectionResults)
-    self:_createPlayerTab(contentFrame)
-    self:_createWorldTab(contentFrame)
-    self:_createToolsTab(contentFrame, detectionResults)
-    
-    -- Hide all tabs initially, show first tab
-    for _, tab in ipairs(contentFrame:GetChildren()) do
-        if tab:IsA("Frame") then
-            tab.Visible = false
+    -- Quick scan for brainrots
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj.Name:lower():find("brainrot") then
+            analysis.brainrotCount = analysis.brainrotCount + 1
         end
     end
     
-    if contentFrame:FindFirstChild("SpawnTab") then
-        contentFrame.SpawnTab.Visible = true
-        tabButtons["Spawn"].BackgroundColor3 = Color3.fromRGB(100, 50, 150)
-        tabButtons["Spawn"].TextColor3 = Color3.new(1, 1, 1)
+    -- Check for spawn systems
+    for _, obj in pairs(game:GetDescendants()) do
+        if obj:IsA("RemoteEvent") then
+            if obj.Name:lower():find("spawn") or obj.Name:lower():find("brainrot") then
+                analysis.remoteEvents = analysis.remoteEvents + 1
+                table.insert(self.IntegrationPoints, {
+                    type = "RemoteEvent",
+                    object = obj,
+                    name = obj.Name
+                })
+            end
+        end
     end
     
-    -- Tab switching
-    for tabName, tabBtn in pairs(tabButtons) do
-        tabBtn.MouseButton1Click:Connect(function()
-            -- Hide all tabs
-            for _, tab in ipairs(contentFrame:GetChildren()) do
-                if tab:IsA("Frame") then
-                    tab.Visible = false
-                end
-            end
-            
-            -- Reset all tab buttons
-            for _, btn in pairs(tabButtons) do
-                btn.BackgroundColor3 = Color3.fromRGB(40, 30, 50)
-                btn.TextColor3 = Color3.fromRGB(150, 150, 200)
-            end
-            
-            -- Show selected tab
-            local selectedTab = contentFrame:FindFirstChild(tabName .. "Tab")
-            if selectedTab then
-                selectedTab.Visible = true
-                tabBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
-                tabBtn.TextColor3 = Color3.new(1, 1, 1)
-            end
-        end)
+    -- Determine game type
+    if analysis.remoteEvents > 0 then
+        self.GameType = "MODDED"
+        DeltaLog("Modded game detected (" .. analysis.remoteEvents .. " remote events)")
+    elseif analysis.brainrotCount > 0 then
+        self.GameType = "VANILLA"
+        DeltaLog("Vanilla game detected (" .. analysis.brainrotCount .. " brainrots)")
+    else
+        self.GameType = "EMPTY"
+        DeltaLog("Empty or different game")
     end
     
-    -- Toggle button for showing/hiding
-    local toggleBtn = Instance.new("TextButton")
-    toggleBtn.Name = "ToggleButton"
-    toggleBtn.Text = "🧠"
-    toggleBtn.Font = Enum.Font.GothamBlack
-    toggleBtn.TextSize = 30
-    toggleBtn.TextColor3 = Color3.new(1, 1, 1)
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
-    toggleBtn.BackgroundTransparency = 0.2
-    toggleBtn.Size = UDim2.new(0, 60, 0, 60)
-    toggleBtn.Position = UDim2.new(1, -70, 1, -70)
-    toggleBtn.Parent = self._gui
+    self.DetectedFeatures = analysis
     
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(1, 0)
-    toggleCorner.Parent = toggleBtn
+    -- Update UI status
+    local statusColor = self.GameType == "MODDED" and Color3.fromRGB(100, 255, 100) or
+                       self.GameType == "VANILLA" and Color3.fromRGB(255, 200, 100) or
+                       Color3.fromRGB(255, 100, 100)
     
-    toggleBtn.MouseButton1Click:Connect(function()
-        mainFrame.Visible = not mainFrame.Visible
-    end)
+    DeltaTouchUI:UpdateStatus(
+        self.GameType .. " Game • " .. analysis.brainrotCount .. " Brainrots",
+        statusColor
+    )
+    
+    return self.GameType, analysis
 end
 
-function UniversalAdmin:_createSpawnTab(parent, detectionResults)
-    local spawnTab = Instance.new("ScrollingFrame")
-    spawnTab.Name = "SpawnTab"
-    spawnTab.Size = UDim2.new(1, 0, 1, 0)
-    spawnTab.BackgroundTransparency = 1
-    spawnTab.ScrollBarThickness = 4
-    spawnTab.ScrollBarImageColor3 = Color3.fromRGB(100, 50, 150)
-    spawnTab.Parent = parent
+-- ============================================================================
+## **DELTA MAIN MENU BUILDER**
+-- ============================================================================
+
+local function BuildDeltaMenu(ui, gameType, analysis)
+    local commandsList = ui.MainMenu:FindFirstChild("CommandsList")
+    if not commandsList then return end
     
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 10)
-    layout.Parent = spawnTab
+    -- Clear existing commands
+    for _, child in ipairs(commandsList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
     
-    -- Title
-    local title = Instance.new("TextLabel")
-    title.Text = "✨ SPAWN BRAINROTS"
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 18
-    title.TextColor3 = Color3.fromRGB(200, 150, 255)
-    title.BackgroundTransparency = 1
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = spawnTab
+    -- Spawn section
+    local spawnSection = Instance.new("TextLabel")
+    spawnSection.Text = "SPAWN BRAINROTS"
+    spawnSection.Font = Enum.Font.SourceSansSemibold
+    spawnSection.TextSize = 12
+    spawnSection.TextColor3 = Color3.fromRGB(150, 150, 150)
+    spawnSection.BackgroundTransparency = 1
+    spawnSection.Size = UDim2.new(1, -20, 0, 30)
+    spawnSection.Position = UDim2.new(0, 20, 0, 0)
+    spawnSection.TextXAlignment = Enum.TextXAlignment.Left
+    spawnSection.Parent = commandsList
     
-    -- Method indicator
-    local methodText = Instance.new("TextLabel")
-    methodText.Text = "Method: " .. (detectionResults.type == "MODDED" and "Server Integration" or "Client Visual")
-    methodText.Font = Enum.Font.RobotoMono
-    methodText.TextSize = 12
-    methodText.TextColor3 = detectionResults.type == "MODDED" and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 200, 100)
-    methodText.BackgroundTransparency = 1
-    methodText.Size = UDim2.new(1, 0, 0, 20)
-    methodText.TextXAlignment = Enum.TextXAlignment.Left
-    methodText.Parent = spawnTab
-    
-    -- Brainrot types
+    -- Brainrot types for mobile
     local brainrotTypes = {
-        {"Brainrot", "🧠", Color3.fromRGB(100, 50, 150)},
-        {"GoldenBrainrot", "🌟", Color3.fromRGB(255, 215, 0)},
-        {"RainbowBrainrot", "🌈", Color3.fromRGB(255, 0, 0)},
-        {"CursedBrainrot", "☠️", Color3.fromRGB(0, 0, 0)},
-        {"AtomicBrainrot", "☢️", Color3.fromRGB(0, 255, 0)},
-        {"GalacticBrainrot", "🌌", Color3.fromRGB(75, 0, 130)}
+        {"🧠 Normal", "Brainrot", Color3.fromRGB(100, 50, 150)},
+        {"🌟 Golden", "Golden", Color3.fromRGB(255, 215, 0)},
+        {"🌈 Rainbow", "Rainbow", Color3.fromRGB(255, 50, 50)},
+        {"☢️ Atomic", "Atomic", Color3.fromRGB(0, 255, 100)},
+        {"🌌 Galactic", "Galactic", Color3.fromRGB(100, 50, 255)}
     }
     
     for _, brainrotData in ipairs(brainrotTypes) do
-        local name = brainrotData[1]
-        local icon = brainrotData[2]
+        local displayName = brainrotData[1]
+        local typeName = brainrotData[2]
         local color = brainrotData[3]
         
-        local button = Instance.new("TextButton")
-        button.Name = "Spawn_" .. name
-        button.Text = icon .. " " .. name
-        button.Font = Enum.Font.GothamMedium
-        button.TextSize = 14
-        button.TextColor3 = Color3.new(1, 1, 1)
-        button.BackgroundColor3 = color
-        button.BackgroundTransparency = 0.2
-        button.Size = UDim2.new(1, 0, 0, 45)
-        button.Parent = spawnTab
-        
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0.1, 0)
-        corner.Parent = button
-        
-        button.MouseButton1Click:Connect(function()
+        local button = ui:CreateiOSButton(displayName, "✨", function()
             local player = game:GetService("Players").LocalPlayer
             local character = player.Character
-            local position = character and character:FindFirstChild("HumanoidRootPart") and 
-                           character.HumanoidRootPart.Position or Vector3.new(0, 5, 0)
-            
-            local spawned, method = UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot(name, position, 5)
-            
-            -- Show notification
-            self:_showNotification("Spawned " .. spawned .. " " .. name .. " (Method: " .. method .. ")", color)
-        end)
-        
-        -- Bulk spawn button
-        local bulkButton = Instance.new("TextButton")
-        bulkButton.Name = "Bulk_" .. name
-        bulkButton.Text = icon .. " SPAWN x10"
-        bulkButton.Font = Enum.Font.GothamMedium
-        bulkButton.TextSize = 12
-        bulkButton.TextColor3 = Color3.new(1, 1, 1)
-        bulkButton.BackgroundColor3 = color
-        bulkButton.BackgroundTransparency = 0.3
-        bulkButton.Size = UDim2.new(1, 0, 0, 35)
-        bulkButton.Parent = spawnTab
-        
-        local bulkCorner = Instance.new("UICorner")
-        bulkCorner.CornerRadius = UDim.new(0.1, 0)
-        bulkCorner.Parent = bulkButton
-        
-        bulkButton.MouseButton1Click:Connect(function()
-            local player = game:GetService("Players").LocalPlayer
-            local character = player.Character
-            local position = character and character:FindFirstChild("HumanoidRootPart") and 
-                           character.HumanoidRootPart.Position or Vector3.new(0, 5, 0)
-            
-            local spawned, method = UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot(name, position, 10)
-            self:_showNotification("Spawned " .. spawned .. " " .. name .. " in bulk", color)
-        end)
+            if character then
+                local root = character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    DeltaSpawnEngine:SpawnMobileBrainrot(typeName, root.Position + Vector3.new(0, 5, 5), 3)
+                    
+                    -- Update status
+                    DeltaTouchUI:UpdateStatus("Spawned 3x " .. typeName, color)
+                end
+            end
+        end, false)
+        button.Parent = commandsList
     end
     
-    -- Special spawns
-    local specialTitle = Instance.new("TextLabel")
-    specialTitle.Text = "✨ SPECIAL SPAWNS"
-    specialTitle.Font = Enum.Font.GothamBold
-    specialTitle.TextSize = 16
-    specialTitle.TextColor3 = Color3.fromRGB(255, 200, 100)
-    specialTitle.BackgroundTransparency = 1
-    specialTitle.Size = UDim2.new(1, 0, 0, 30)
-    specialTitle.TextXAlignment = Enum.TextXAlignment.Left
-    specialTitle.Parent = spawnTab
+    -- Quick spawn buttons
+    local quickSection = Instance.new("TextLabel")
+    quickSection.Text = "QUICK SPAWNS"
+    quickSection.Font = Enum.Font.SourceSansSemibold
+    quickSection.TextSize = 12
+    quickSection.TextColor3 = Color3.fromRGB(150, 150, 150)
+    quickSection.BackgroundTransparency = 1
+    quickSection.Size = UDim2.new(1, -20, 0, 30)
+    quickSection.Position = UDim2.new(0, 20, 0, 380)
+    quickSection.TextXAlignment = Enum.TextXAlignment.Left
+    quickSection.Parent = commandsList
     
-    local rainButton = Instance.new("TextButton")
-    rainButton.Name = "RainButton"
-    rainButton.Text = "🌧️ Brainrot Rain"
-    rainButton.Font = Enum.Font.GothamMedium
-    rainButton.TextSize = 14
-    rainButton.TextColor3 = Color3.new(1, 1, 1)
-    rainButton.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
-    rainButton.BackgroundTransparency = 0.2
-    rainButton.Size = UDim2.new(1, 0, 0, 45)
-    rainButton.Parent = spawnTab
-    
-    rainButton.MouseButton1Click:Connect(function()
+    -- Rain button
+    local rainButton = ui:CreateiOSButton("Brainrot Rain", "🌧️", function()
         local player = game:GetService("Players").LocalPlayer
         local character = player.Character
         if character then
             local root = character:FindFirstChild("HumanoidRootPart")
             if root then
-                for i = 1, 20 do
+                for i = 1, 10 do
                     task.spawn(function()
-                        task.wait(i * 0.1)
-                        UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot("Brainrot", 
-                            root.Position + Vector3.new(math.random(-20, 20), 30, math.random(-20, 20)), 1)
+                        task.wait(i * 0.3)
+                        local pos = root.Position + Vector3.new(
+                            math.random(-15, 15),
+                            math.random(20, 30),
+                            math.random(-15, 15)
+                        )
+                        DeltaSpawnEngine:SpawnMobileBrainrot("Brainrot", pos, 1)
                     end)
                 end
-                self:_showNotification("Brainrot rain started!", Color3.fromRGB(0, 100, 200))
+                DeltaTouchUI:UpdateStatus("Brainrot rain started!", Color3.fromRGB(100, 150, 255))
             end
         end
-    end)
+    end, false)
+    rainButton.Parent = commandsList
     
-    local ringButton = Instance.new("TextButton")
-    ringButton.Name = "RingButton"
-    ringButton.Text = "🔘 Brainrot Ring"
-    ringButton.Font = Enum.Font.GothamMedium
-    ringButton.TextSize = 14
-    ringButton.TextColor3 = Color3.new(1, 1, 1)
-    ringButton.BackgroundColor3 = Color3.fromRGB(200, 100, 0)
-    ringButton.BackgroundTransparency = 0.2
-    ringButton.Size = UDim2.new(1, 0, 0, 45)
-    ringButton.Parent = spawnTab
-    
-    ringButton.MouseButton1Click:Connect(function()
+    -- Ring button
+    local ringButton = ui:CreateiOSButton("Brainrot Ring", "🔘", function()
         local player = game:GetService("Players").LocalPlayer
         local character = player.Character
         if character then
             local root = character:FindFirstChild("HumanoidRootPart")
             if root then
                 local center = root.Position
-                local radius = 15
-                local count = 16
+                local radius = 10
+                local count = 8  -- Fewer for mobile
                 
                 for i = 1, count do
                     local angle = (i / count) * math.pi * 2
-                    local position = center + Vector3.new(
+                    local pos = center + Vector3.new(
                         math.cos(angle) * radius,
-                        5,
+                        3,
                         math.sin(angle) * radius
                     )
-                    UniversalBrainrot.SpawnEngine:SpawnUniversalBrainrot("Brainrot", position, 1)
+                    DeltaSpawnEngine:SpawnMobileBrainrot("Brainrot", pos, 1)
                 end
-                self:_showNotification("Brainrot ring created!", Color3.fromRGB(200, 100, 0))
+                DeltaTouchUI:UpdateStatus("Brainrot ring created!", Color3.fromRGB(255, 200, 100))
             end
         end
-    end)
+    end, false)
+    ringButton.Parent = commandsList
     
-    local clearButton = Instance.new("TextButton")
-    clearButton.Name = "ClearButton"
-    clearButton.Text = "🗑️ Clear All (Client)"
-    clearButton.Font = Enum.Font.GothamMedium
-    clearButton.TextSize = 14
-    clearButton.TextColor3 = Color3.new(1, 1, 1)
-    clearButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    clearButton.BackgroundTransparency = 0.2
-    clearButton.Size = UDim2.new(1, 0, 0, 45)
-    clearButton.Parent = spawnTab
+    -- Player tools section
+    local toolsSection = Instance.new("TextLabel")
+    toolsSection.Text = "PLAYER TOOLS"
+    toolsSection.Font = Enum.Font.SourceSansSemibold
+    toolsSection.TextSize = 12
+    toolsSection.TextColor3 = Color3.fromRGB(150, 150, 150)
+    toolsSection.BackgroundTransparency = 1
+    toolsSection.Size = UDim2.new(1, -20, 0, 30)
+    toolsSection.Position = UDim2.new(0, 20, 0, 520)
+    toolsSection.TextXAlignment = Enum.TextXAlignment.Left
+    toolsSection.Parent = commandsList
     
-    clearButton.MouseButton1Click:Connect(function()
-        local count = 0
-        for _, obj in ipairs(workspace:GetChildren()) do
-            if obj.Name:find("Brainrot") and obj:IsA("Part") then
-                obj:Destroy()
-                count = count + 1
-            end
-        end
-        self:_showNotification("Cleared " .. count .. " client brainrots", Color3.fromRGB(200, 50, 50))
-    end)
-end
-
-function UniversalAdmin:_createPlayerTab(parent)
-    -- Player controls tab (similar to previous but simplified)
-    -- This would include speed, jump, fly, noclip controls
-    -- Omitted for brevity but would be similar to previous implementation
-end
-
-function UniversalAdmin:_createWorldTab(parent)
-    -- World controls tab
-    -- Omitted for brevity
-end
-
-function UniversalAdmin:_createToolsTab(parent, detectionResults)
-    local toolsTab = Instance.new("ScrollingFrame")
-    toolsTab.Name = "ToolsTab"
-    toolsTab.Size = UDim2.new(1, 0, 1, 0)
-    toolsTab.BackgroundTransparency = 1
-    toolsTab.ScrollBarThickness = 4
-    toolsTab.ScrollBarImageColor3 = Color3.fromRGB(100, 50, 150)
-    toolsTab.Parent = parent
-    
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 10)
-    layout.Parent = toolsTab
-    
-    -- Title
-    local title = Instance.new("TextLabel")
-    title.Text = "🛠️ SYSTEM TOOLS"
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 18
-    title.TextColor3 = Color3.fromRGB(200, 200, 255)
-    title.BackgroundTransparency = 1
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = toolsTab
-    
-    -- Integration tools
-    local integrationTitle = Instance.new("TextLabel")
-    integrationTitle.Text = "INTEGRATION"
-    integrationTitle.Font = Enum.Font.GothamMedium
-    integrationTitle.TextSize = 14
-    integrationTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-    integrationTitle.BackgroundTransparency = 1
-    integrationTitle.Size = UDim2.new(1, 0, 0, 25)
-    integrationTitle.TextXAlignment = Enum.TextXAlignment.Left
-    integrationTitle.Parent = toolsTab
-    
-    local scanButton = Instance.new("TextButton")
-    scanButton.Name = "ScanButton"
-    scanButton.Text = "🔍 Rescan Game"
-    scanButton.Font = Enum.Font.GothamMedium
-    scanButton.TextSize = 14
-    scanButton.TextColor3 = Color3.new(1, 1, 1)
-    scanButton.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-    scanButton.BackgroundTransparency = 0.2
-    scanButton.Size = UDim2.new(1, 0, 0, 45)
-    scanButton.Parent = toolsTab
-    
-    scanButton.MouseButton1Click:Connect(function()
-        local newResults = UniversalBrainrot:DetectGameType()
-        self:_showNotification("Rescanned: " .. newResults.type .. " (" .. newResults.confidence .. "%)", 
-            Color3.fromRGB(100, 150, 255))
-    end)
-    
-    local forceModdedButton = Instance.new("TextButton")
-    forceModdedButton.Name = "ForceModdedButton"
-    forceModdedButton.Text = "⚡ Force Modded Mode"
-    forceModdedButton.Font = Enum.Font.GothamMedium
-    forceModdedButton.TextSize = 14
-    forceModdedButton.TextColor3 = Color3.new(1, 1, 1)
-    forceModdedButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-    forceModdedButton.BackgroundTransparency = 0.2
-    forceModdedButton.Size = UDim2.new(1, 0, 0, 45)
-    forceModdedButton.Parent = toolsTab
-    
-    forceModdedButton.MouseButton1Click:Connect(function()
-        UniversalBrainrot._gameType = "MODDED"
-        self:_showNotification("Forced MODDED mode - attempting server integration", Color3.fromRGB(100, 255, 100))
-    end)
-    
-    -- Debug tools
-    local debugTitle = Instance.new("TextLabel")
-    debugTitle.Text = "DEBUG"
-    debugTitle.Font = Enum.Font.GothamMedium
-    debugTitle.TextSize = 14
-    debugTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-    debugTitle.BackgroundTransparency = 1
-    debugTitle.Size = UDim2.new(1, 0, 0, 25)
-    debugTitle.TextXAlignment = Enum.TextXAlignment.Left
-    debugTitle.Parent = toolsTab
-    
-    local testSpawnButton = Instance.new("TextButton")
-    testSpawnButton.Name = "TestSpawnButton"
-    testSpawnButton.Text = "🧪 Test All Spawn Methods"
-    testSpawnButton.Font = Enum.Font.GothamMedium
-    testSpawnButton.TextSize = 14
-    testSpawnButton.TextColor3 = Color3.new(1, 1, 1)
-    testSpawnButton.BackgroundColor3 = Color3.fromRGB(255, 200, 100)
-    testSpawnButton.BackgroundTransparency = 0.2
-    testSpawnButton.Size = UDim2.new(1, 0, 0, 45)
-    testSpawnButton.Parent = toolsTab
-    
-    testSpawnButton.MouseButton1Click:Connect(function()
-        local methods = {"SERVER_INTEGRATION", "REMOTE_EVENT_SPAWN", "CLIENT_VISUAL_SPAWN"}
-        local results = {}
+    -- Fly toggle
+    local flyActive = false
+    local flyButton = ui:CreateiOSButton("Flight Mode", "🪽", function()
+        flyActive = not flyActive
         
-        for _, method in ipairs(methods) do
-            local success, spawned = pcall(function()
-                if method == "CLIENT_VISUAL_SPAWN" then
-                    return UniversalBrainrot.SpawnEngine:ClientVisualSpawn("Brainrot", Vector3.new(0, 10, 0), 1)
-                end
-                return 0
-            end)
-            
-            results[method] = success and "✓" or "✗"
-        end
-        
-        local resultText = "Spawn Method Test:\n"
-        for method, result in pairs(results) do
-            resultText = resultText .. method .. ": " .. result .. "\n"
-        end
-        
-        self:_showNotification(resultText, Color3.fromRGB(255, 200, 100))
-    end)
-    
-    -- System info
-    local infoTitle = Instance.new("TextLabel")
-    infoTitle.Text = "SYSTEM INFO"
-    infoTitle.Font = Enum.Font.GothamMedium
-    infoTitle.TextSize = 14
-    infoTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-    infoTitle.BackgroundTransparency = 1
-    infoTitle.Size = UDim2.new(1, 0, 0, 25)
-    infoTitle.TextXAlignment = Enum.TextXAlignment.Left
-    infoTitle.Parent = toolsTab
-    
-    local infoButton = Instance.new("TextButton")
-    infoButton.Name = "InfoButton"
-    infoButton.Text = "ℹ️ Show System Status"
-    infoButton.Font = Enum.Font.GothamMedium
-    infoButton.TextSize = 14
-    infoButton.TextColor3 = Color3.new(1, 1, 1)
-    infoButton.BackgroundColor3 = Color3.fromRGB(150, 150, 200)
-    infoButton.BackgroundTransparency = 0.2
-    infoButton.Size = UDim2.new(1, 0, 0, 45)
-    infoButton.Parent = toolsTab
-    
-    infoButton.MouseButton1Click:Connect(function()
-        local info = "=== SYSTEM STATUS ===\n"
-        info = info .. "Game Type: " .. UniversalBrainrot._gameType .. "\n"
-        info = info .. "Detection Confidence: " .. detectionResults.confidence .. "%\n"
-        info = info .. "Brainrots in Workspace: " .. detectionResults.analysis.workspace.brainrotCount .. "\n"
-        info = info .. "Special Variants: " .. detectionResults.analysis.workspace.specialObjects .. "\n"
-        info = info .. "Integration Method: " .. (UniversalBrainrot.Integration._activeMethod or "None") .. "\n"
-        info = info .. "Spawn History: " .. #UniversalBrainrot.SpawnEngine._spawnHistory .. " entries"
-        
-        self:_showNotification(info, Color3.fromRGB(150, 150, 200))
-    end)
-    
-    -- Reset button
-    local resetButton = Instance.new("TextButton")
-    resetButton.Name = "ResetButton"
-    resetButton.Text = "🔄 Reset System"
-    resetButton.Font = Enum.Font.GothamMedium
-    resetButton.TextSize = 14
-    resetButton.TextColor3 = Color3.new(1, 1, 1)
-    resetButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-    resetButton.BackgroundTransparency = 0.2
-    resetButton.Size = UDim2.new(1, 0, 0, 45)
-    resetButton.Parent = toolsTab
-    
-    resetButton.MouseButton1Click:Connect(function()
-        UniversalBrainrot.SpawnEngine._spawnHistory = {}
-        for _, obj in ipairs(workspace:GetChildren()) do
-            if obj.Name:find("Brainrot") and obj:IsA("Part") then
-                obj:Destroy()
-            end
-        end
-        self:_showNotification("System reset complete", Color3.fromRGB(255, 100, 100))
-    end)
-    
-    -- Destroy button
-    local destroyButton = Instance.new("TextButton")
-    destroyButton.Name = "DestroyButton"
-    destroyButton.Text = "💀 Destroy Panel"
-    destroyButton.Font = Enum.Font.GothamMedium
-    destroyButton.TextSize = 14
-    destroyButton.TextColor3 = Color3.new(1, 1, 1)
-    destroyButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    destroyButton.BackgroundTransparency = 0.2
-    destroyButton.Size = UDim2.new(1, 0, 0, 45)
-    destroyButton.Parent = toolsTab
-    
-    destroyButton.MouseButton1Click:Connect(function()
-        if self._gui and self._gui.Parent then
-            self._gui:Destroy()
-        end
-    end)
-end
-
-function UniversalAdmin:_showNotification(message, color)
-    local notify = Instance.new("ScreenGui")
-    notify.Name = "Notification"
-    notify.Parent = game:GetService("CoreGui")
-    
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 80)
-    frame.Position = UDim2.new(1, -320, 0, 20)
-    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-    frame.BackgroundTransparency = 0.1
-    frame.Parent = notify
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0.1, 0)
-    corner.Parent = frame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Color3.fromRGB(100, 50, 150)
-    stroke.Thickness = 2
-    stroke.Parent = frame
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 1, -20)
-    label.Position = UDim2.new(0, 10, 0, 10)
-    label.BackgroundTransparency = 1
-    label.Text = message
-    label.Font = Enum.Font.RobotoMono
-    label.TextSize = 12
-    label.TextColor3 = color or Color3.new(1, 1, 1)
-    label.TextWrapped = true
-    label.Parent = frame
-    
-    -- Animate and destroy
-    task.spawn(function()
-        task.wait(3)
-        
-        local tween = game:GetService("TweenService"):Create(frame, 
-            TweenInfo.new(0.5, Enum.EasingStyle.Quad), {
-                Position = UDim2.new(1, -320, 0, -100)
-            })
-        
-        tween:Play()
-        tween.Completed:Wait()
-        
-        if notify and notify.Parent then
-            notify:Destroy()
-        end
-    end)
-end
-
--- ============================================================================
-## **AUTO-INITIALIZATION & DEPLOYMENT**
--- ============================================================================
-
--- Main initialization function
-local function InitializeUniversalSystem()
-    print("[Universal Brainrot System] Initializing...")
-    
-    -- Detect game type
-    local detectionResults = UniversalBrainrot:DetectGameType()
-    
-    -- Create GUI
-    UniversalAdmin:CreateUniversalGUI()
-    
-    -- Integration attempts based on game type
-    if detectionResults.type == "MODDED" then
-        print("[Universal] Attempting modded game integration...")
-        local points = UniversalBrainrot.Integration:FindIntegrationPoints()
-        UniversalBrainrot.Integration:AttemptIntegration("REMOTE_EVENT_HOOK", points)
-    else
-        print("[Universal] Using client-side emulation (vanilla game)")
-        UniversalBrainrot.Integration:AttemptIntegration("CLIENT_SIDE_EMULATION", {})
-    end
-    
-    -- Show welcome notification
-    UniversalAdmin:_showNotification(
-        "Universal Brainrot System v9.0\n" ..
-        "Game: " .. detectionResults.type .. " mode\n" ..
-        "Status: " .. (detectionResults.type == "MODDED" and "Server Integration" or "Client Visual") .. "\n" ..
-        "Ready to spawn brainrots!",
-        detectionResults.type == "MODDED" and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 200, 100)
-    )
-    
-    return {
-        Brainrot = UniversalBrainrot,
-        Admin = UniversalAdmin,
-        Detection = detectionResults,
-        Destroy = function()
-            if UniversalAdmin._gui and UniversalAdmin._gui.Parent then
-                UniversalAdmin._gui:Destroy()
-            end
-        end
-    }
-end
-
--- Auto-initialize with error handling
-local success, system = pcall(InitializeUniversalSystem)
-
-if not success then
-    warn("[Universal System] Initialization failed:", system)
-    
-    -- Fallback: Create simple GUI that always works
-    local fallbackGui = Instance.new("ScreenGui")
-    fallbackGui.Name = "FallbackBrainrot"
-    fallbackGui.Parent = game:GetService("CoreGui")
-    
-    local button = Instance.new("TextButton")
-    button.Text = "🧠"
-    button.Font = Enum.Font.GothamBlack
-    button.TextSize = 40
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.BackgroundColor3 = Color3.fromRGB(100, 50, 150)
-    button.BackgroundTransparency = 0.2
-    button.Size = UDim2.new(0, 80, 0, 80)
-    button.Position = UDim2.new(1, -90, 1, -90)
-    button.Parent = fallbackGui
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = button
-    
-    button.MouseButton1Click:Connect(function()
-        -- Simple client-side spawn
-        local player = game:GetService("Players").LocalPlayer
-        local character = player.Character
+        local character = game:GetService("Players").LocalPlayer.Character
         if character then
             local root = character:FindFirstChild("HumanoidRootPart")
             if root then
-                local brainrot = Instance.new("Part")
-                brainrot.Name = "Brainrot_" .. tick()
-                brainrot.Size = Vector3.new(2, 2, 2)
-                brainrot.Position = root.Position + Vector3.new(0, 5, 5)
-                brainrot.Anchored = true
-                brainrot.CanCollide = false
-                brainrot.Transparency = 0.3
-                brainrot.Color = Color3.fromRGB(100, 50, 150)
-                brainrot.Material = Enum.Material.Neon
-                brainrot.Parent = workspace
-                
-                game:GetService("Debris"):AddItem(brainrot, 30)
-            end
-        end
-    end)
-end
-
--- Return the system for manual control
-return InitializeUniversalSystem
+                if flyActive then
+                    -- Simple flight for mobile
+                    local bodyVelocity = Instance.new("BodyVelocity")
+                    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                    bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+                    bodyVelocity.Parent = root
+                    
+                    -- Update status light
+                    local bg = flyButton:FindFirstChild("Background")
+                    local light = bg and bg:FindFirstChild("StatusLight")
+                    if light then
+                        light.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+                    end
+                    
+                    DeltaTouchUI
